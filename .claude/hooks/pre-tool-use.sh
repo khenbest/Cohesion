@@ -26,14 +26,14 @@ FLAG_DIR="$STATE_DIR/flags"
 UNLEASHED_FLAG="$FLAG_DIR/unleashed"
 OPTIMIZING_FLAG="$FLAG_DIR/optimizing"
 
-# Determine current DUO state
-if [ -f "$UNLEASHED_FLAG" ]; then
-    STATE="UNLEASH"
-elif [ -f "$OPTIMIZING_FLAG" ]; then
-    STATE="OPTIMIZE"
-else
-    STATE="DISCOVER"
-fi
+# Fast state detection (optimized)
+get_current_state() {
+    [ -f "$UNLEASHED_FLAG" ] && echo "UNLEASH" && return
+    [ -f "$OPTIMIZING_FLAG" ] && echo "OPTIMIZE" && return
+    echo "DISCOVER"
+}
+
+STATE=$(get_current_state)
 
 # Quick permission check based on state
 case "$STATE" in
@@ -79,7 +79,7 @@ EOF
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "🔍 DUO PROTOCOL: DISCOVER STATE\\n\\nPROHIBITED: Write, Edit, or modification tools\\n\\nREQUIRED WORKFLOW:\\n1. Analyze using Read/Grep/Research tools\\n2. Present comprehensive plan\\n3. Wait for user approval to UNLEASH"
+    "permissionDecisionReason": "🔍 DISCOVER STATE - Analysis Only\\n\\n❌ Cannot modify files yet\\n\\n✅ Available: Read, Grep, WebSearch, WebFetch\\n\\n🎯 Next Step: Present your plan, then say 'approved'\\n\\n💡 Tip: Use './cohesion status' to see current state"
   }
 }
 EOF

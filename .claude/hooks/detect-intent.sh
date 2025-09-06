@@ -48,6 +48,17 @@ detect_approval() {
     esac
 }
 
+detect_weak_approval() {
+    case "$MESSAGE" in
+        *"yes"*|*"ok"*|*"sure"*|*"yep"*|*"yeah"*|*"good"*)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 detect_consultation() {
     case "$MESSAGE" in
         # Technical blockers (original)
@@ -122,11 +133,19 @@ EOF
             cat <<EOF
 {
   "continue": true,
-  "systemMessage": "⚡ DUO PROTOCOL: UNLEASH STATE ACTIVATED\\n\\nYou now have full autonomous execution power. Work independently until task completion or blocker."
+  "systemMessage": "⚡ UNLEASH STATE ACTIVATED\\n\\n🎯 Mission: Execute approved plan autonomously\\n🔧 Tools: All modification capabilities enabled\\n⏰ Started: $(date '+%H:%M')\\n\\n💪 Working with full autonomy until task completion..."
 }
 EOF
             exit 0
         fi
+    elif detect_weak_approval; then
+        cat <<EOF
+{
+  "continue": true,
+  "systemMessage": "🤔 Partial approval detected\\n\\n💡 For UNLEASH state, say: 'approved', 'lgtm', or 'proceed'\\n🔍 Currently in DISCOVER - analysis only"
+}
+EOF
+        exit 0
     fi
 fi
 

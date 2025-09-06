@@ -36,15 +36,40 @@ fi
 WORK_FILE="$STATE_DIR/work.json"
 NOW=$(date +%s)
 
-# Create work context for next session
+# Analyze git context for session handoff
+GIT_STATUS=""
+if [ -d ".git" ]; then
+    GIT_STATUS=$(git status --porcelain 2>/dev/null | head -3 | tr '\n' '; ' || echo "")
+fi
+
+# Create enhanced work context for next session
 cat > "$WORK_FILE" << EOF
 {
   "last_state": "$CURRENT_STATE",
   "ended_at": "$NOW",
   "ended_date": "$(date -Iseconds)",
-  "last_task": "",
-  "next_plan": ""
+  "git_status": "$GIT_STATUS",
+  "last_task": "Check git status and previous session context",
+  "next_plan": "Review uncommitted changes and continue from where we left off"
 }
+EOF
+
+# Create session handoff context
+mkdir -p "$SCRIPT_DIR/../context"
+cat > "$SCRIPT_DIR/../context/session-handoff.md" << EOF
+# Session Context Handoff
+
+## Previous Session Summary:
+- **Final State**: $CURRENT_STATE
+- **Completed**: $(date)
+- **Project**: $(basename "$(pwd)")
+
+## Current Git Status:
+$GIT_STATUS
+
+## Context for Next Session:
+Claude should check git status and any uncommitted changes before starting new work.
+Review this handoff context during DISCOVER state.
 EOF
 
 # Clean up state flags for next session

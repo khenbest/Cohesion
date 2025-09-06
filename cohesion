@@ -99,6 +99,7 @@ show_help() {
     echo ""
     printf "${BLUE}Project Commands:${NC}\n"
     echo "  init        Initialize Cohesion in current project"
+    echo "  ide-setup   Create IDE integration files (VS Code tasks)"
     echo "  list        List all projects with Cohesion states (global only)"
     echo "  clean       Clean old project states (global only)"
     echo ""
@@ -730,6 +731,70 @@ show_debug_info() {
     fi
 }
 
+# IDE Integration Setup
+ide_setup() {
+    echo -e "${CYAN}🔧 IDE Integration Setup${NC}\n"
+    
+    # Create VS Code tasks if VS Code is available
+    if command -v code >/dev/null; then
+        echo -e "${GREEN}✓${NC} VS Code detected"
+        
+        if [ ! -f ".vscode/tasks.json" ]; then
+            mkdir -p .vscode
+            cat > .vscode/tasks.json << 'EOF'
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Cohesion Status",
+            "type": "shell",
+            "command": "./cohesion",
+            "args": ["status"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Cohesion Safety Check",
+            "type": "shell",
+            "command": "./cohesion",
+            "args": ["safety-check"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false
+            }
+        },
+        {
+            "label": "Cohesion Reset",
+            "type": "shell",
+            "command": "./cohesion",
+            "args": ["reset"],
+            "group": "build"
+        }
+    ]
+}
+EOF
+            echo -e "${GREEN}✓${NC} Created .vscode/tasks.json"
+        else
+            echo -e "${YELLOW}○${NC} .vscode/tasks.json already exists"
+        fi
+    else
+        echo -e "${GRAY}○${NC} VS Code not detected"
+    fi
+    
+    echo -e "\n${GREEN}🎉 IDE setup complete!${NC}"
+    echo -e "${CYAN}Available VS Code tasks:${NC}"
+    echo -e "  • Cohesion Status (Ctrl+Shift+P > Tasks: Run Task)"
+    echo -e "  • Cohesion Safety Check"
+    echo -e "  • Cohesion Reset"
+}
+
 # Main command handling
 case "${1:-help}" in
     status|s)
@@ -755,6 +820,9 @@ case "${1:-help}" in
         ;;
     list|ls)
         list_projects
+        ;;
+    ide-setup)
+        ide_setup
         ;;
     init)
         init_project

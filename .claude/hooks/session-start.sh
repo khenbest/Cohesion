@@ -96,11 +96,22 @@ cat > "$CONTEXT_DIR/duo-status.md" << 'EOF'
 - Present thorough analysis before requesting approval
 EOF
 
+# Detect git context for enhanced project awareness
+GIT_CONTEXT=""
+if [ -d ".git" ]; then
+    CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+    UNCOMMITTED=$(git status --porcelain 2>/dev/null | wc -l || echo "0")
+    BEHIND=$(git rev-list HEAD..@{u} --count 2>/dev/null || echo "0")
+    
+    GIT_CONTEXT="\\n\\n📋 Git Context: $CURRENT_BRANCH branch, $UNCOMMITTED uncommitted files"
+    [ "$BEHIND" -gt 0 ] && GIT_CONTEXT="$GIT_CONTEXT, $BEHIND commits behind"
+fi
+
 # Send DUO Protocol initialization message
 cat <<EOF
 {
   "continue": true,
-  "systemMessage": "🚀 COHESION DUO PROTOCOL INITIALIZED\\n\\nCurrent State: DISCOVER 🔍\\n\\n## Your Mission:\\n• Analyze the request thoroughly using Read/Grep/WebSearch\\n• Explore the codebase and understand current state\\n• Research external resources if needed\\n• Present comprehensive plan with clear reasoning\\n• Wait for user approval to enter UNLEASH state\\n\\n## Available Tools:\\n✅ Read, Grep, Glob - Code analysis\\n✅ WebSearch, WebFetch - External research\\n✅ Git inspection commands\\n✅ System exploration (ls, find, ps)\\n\\n❌ No modification tools until UNLEASH state$WORK_CONTEXT\\n\\nDUO Protocol Status: .claude/context/duo-status.md"
+  "systemMessage": "🚀 COHESION DUO PROTOCOL INITIALIZED\\n\\nCurrent State: DISCOVER 🔍\\n\\n## Your Mission:\\n• Analyze the request thoroughly using Read/Grep/WebSearch\\n• Explore the codebase and understand current state\\n• Research external resources if needed\\n• Present comprehensive plan with clear reasoning\\n• Wait for user approval to enter UNLEASH state\\n\\n## Available Tools:\\n✅ Read, Grep, Glob - Code analysis\\n✅ WebSearch, WebFetch - External research\\n✅ Git inspection commands\\n✅ System exploration (ls, find, ps)\\n\\n❌ No modification tools until UNLEASH state$WORK_CONTEXT$GIT_CONTEXT\\n\\nDUO Protocol Status: .claude/context/duo-status.md"
 }
 EOF
 
