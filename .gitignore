@@ -1,0 +1,10 @@
+# Cohesion Framework
+.claude/state/
+.claude/state/backups/
+.claude/state/*.json
+.claude/state/*.log
+*.tmp
+.DS_Store
+
+# Keep the structure but not the data
+!.claude/state/.gitkeep
