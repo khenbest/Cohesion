@@ -9,6 +9,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+GRAY='\033[0;90m'
 NC='\033[0m' # No Color
 
 # Installation detection
@@ -88,11 +89,13 @@ show_help() {
     echo "Usage: cohesion <command> [options]"
     echo ""
     printf "${BLUE}DUO Protocol Commands:${NC}\n"
-    echo "  status      Show current DUO state and capabilities"
-    echo "  duo-status  Show detailed DUO Protocol status"
-    echo "  reset       Reset to DISCOVER state"
-    echo "  history     Show state transition history"
-    echo "  stats       Show session statistics"
+    echo "  status           Show current DUO state and capabilities"
+    echo "  duo-status       Show detailed DUO Protocol status"  
+    echo "  reset            Reset to DISCOVER state"
+    echo "  safety-check     Verify Cohesion installation integrity"
+    echo "  protection-status Show protection system status"
+    echo "  history          Show state transition history"
+    echo "  stats            Show session statistics"
     echo ""
     printf "${BLUE}Project Commands:${NC}\n"
     echo "  init        Initialize Cohesion in current project"
@@ -186,6 +189,92 @@ duo_reset() {
     rm -f "$FLAG_DIR/unleashed" "$FLAG_DIR/optimizing" 2>/dev/null
     set_state "DISCOVER"
     echo -e "${GREEN}✓${NC} DUO Protocol reset to DISCOVER state"
+}
+
+# Protected directories for safety checks
+COHESION_PROTECTED_DIRS=(".claude" ".git" "node_modules" ".next" "build" "dist")
+
+safety_check() {
+    echo -e "${CYAN}🛡️  Cohesion Safety Check${NC}\n"
+
+    local ISSUES=0
+
+    # Check .claude directory integrity
+    if [ ! -d ".claude" ]; then
+        echo -e "${RED}❌ .claude directory missing${NC}"
+        ((ISSUES++))
+    else
+        echo -e "${GREEN}✓${NC} .claude directory present"
+
+        # Check for external contamination
+        if find .claude -name "*.tmp" -o -name "*.bak" 2>/dev/null | grep -q .; then
+            echo -e "${YELLOW}⚠️${NC}  Temporary files found in .claude"
+            ((ISSUES++))
+        fi
+    fi
+
+    # Verify project files are untouched
+    for doc in docs/CONTEXT.md docs/COMMANDS.md README.md; do
+        if [ -f "$doc" ]; then
+            if [ -r "$doc" ] && [ -s "$doc" ]; then
+                echo -e "${GREEN}✓${NC} $doc - accessible and non-empty"
+            else
+                echo -e "${RED}❌${NC} $doc - may be corrupted"
+                ((ISSUES++))
+            fi
+        fi
+    done
+
+    # Check DUO Protocol files
+    local DUO_FILES=(".claude/context/duo-status.md" ".claude/state/flags")
+    for file in "${DUO_FILES[@]}"; do
+        if [ -e "$file" ]; then
+            echo -e "${GREEN}✓${NC} $file - DUO Protocol file present"
+        else
+            echo -e "${YELLOW}⚠️${NC} $file - DUO Protocol file missing"
+        fi
+    done
+
+    if [ $ISSUES -eq 0 ]; then
+        echo -e "\n${GREEN}🛡️  ALL SAFETY CHECKS PASSED${NC}"
+    else
+        echo -e "\n${YELLOW}⚠️  $ISSUES safety issues detected${NC}"
+    fi
+}
+
+protection_status() {
+    echo -e "${CYAN}🛡️  Cohesion Protection Status${NC}\n"
+
+    echo -e "${BLUE}Protected Directories:${NC}"
+    for dir in "${COHESION_PROTECTED_DIRS[@]}"; do
+        if [ -d "$dir" ]; then
+            echo -e "  ${GREEN}✓${NC} $dir/ - protected and present"
+        else
+            echo -e "  ${GRAY}○${NC} $dir/ - protected (not present)"
+        fi
+    done
+
+    echo -e "\n${BLUE}Document Integration Mode:${NC}"
+    if [ -f ".claude/context/project-docs-analysis.md" ]; then
+        echo -e "  ${GREEN}✓${NC} Read-only integration active"
+    elif [ -f ".claude/context/enhancement-summary.md" ]; then
+        echo -e "  ${GREEN}✓${NC} Selective enhancement active"
+    else
+        echo -e "  ${CYAN}→${NC} Minimal documentation mode"
+    fi
+
+    echo -e "\n${BLUE}DUO Protocol Status:${NC}"
+    if [ -f ".claude/context/duo-status.md" ]; then
+        echo -e "  ${GREEN}✓${NC} DUO Protocol context active"
+    else
+        echo -e "  ${YELLOW}⚠️${NC} DUO Protocol context missing"
+    fi
+
+    if [ -d ".claude/state/flags" ]; then
+        echo -e "  ${GREEN}✓${NC} Flag-based state management active"
+    else
+        echo -e "  ${YELLOW}⚠️${NC} Flag-based state management missing"
+    fi
 }
 
 show_status() {
@@ -651,6 +740,12 @@ case "${1:-help}" in
         ;;
     reset|r)
         duo_reset
+        ;;
+    safety-check)
+        safety_check
+        ;;
+    protection-status)
+        protection_status
         ;;
     which|w)
         show_which

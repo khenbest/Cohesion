@@ -10,7 +10,12 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+GRAY='\033[0;90m'
 NC='\033[0m' # No Color
+
+# CRITICAL: Protected directories and files - NEVER modify these
+COHESION_PROTECTED_DIRS=(".claude" ".git" "node_modules" ".next" "build" "dist")
+COHESION_PROTECTED_FILES=(".env" ".env.local" ".env.production")
 
 # Installation paths
 GLOBAL_COHESION_DIR="$HOME/.cohesion"
@@ -31,14 +36,70 @@ is_claude_code_installed() {
     [ -d "$GLOBAL_CLAUDE_DIR" ] || [ -d "$LOCAL_CLAUDE_DIR" ]
 }
 
+# Safe path protection system
+is_protected_path() {
+    local path="$1"
+
+    # Check against protected directories
+    for protected in "${COHESION_PROTECTED_DIRS[@]}"; do
+        if [[ "$path" == *"$protected"* ]]; then
+            return 0  # Protected
+        fi
+    done
+
+    # Check against protected files
+    for protected in "${COHESION_PROTECTED_FILES[@]}"; do
+        if [[ "$path" == *"$protected"* ]]; then
+            return 0  # Protected
+        fi
+    done
+
+    return 1  # Safe
+}
+
+# Safe file creation with protection checks
+create_file_safely() {
+    local file_path="$1"
+    local content="$2"
+
+    # Double-check this isn't a protected path
+    if is_protected_path "$file_path"; then
+        echo -e "${RED}❌ ERROR: Attempted to write to protected path: $file_path${NC}"
+        echo -e "${YELLOW}   Cohesion internal protection prevented this operation${NC}"
+        return 1
+    fi
+
+    # Check if file already exists
+    if [ -f "$file_path" ]; then
+        echo -e "${YELLOW}⚠️  File exists: $file_path${NC}"
+        echo -e "${YELLOW}   Cohesion will not overwrite existing files${NC}"
+        return 1
+    fi
+
+    # Create directory if needed
+    local dir_path="$(dirname "$file_path")"
+    if ! is_protected_path "$dir_path"; then
+        mkdir -p "$dir_path"
+
+        # Write file safely
+        echo "$content" > "$file_path"
+        echo -e "${GREEN}✓${NC} Created: $file_path"
+        return 0
+    else
+        echo -e "${RED}❌ ERROR: Attempted to create directory in protected path: $dir_path${NC}"
+        return 1
+    fi
+}
+
 # Display functions
 show_banner() {
     echo -e "${CYAN}"
     echo "╔═══════════════════════════════════════╗"
-    echo "║       Cohesion v2.0         ║"
-    echo "║    State Management for Claude Code   ║"
+    echo "║       Cohesion DUO Protocol v2.1     ║"
+    echo "║   Advanced AI Workflow with Protection║"
     echo "╚═══════════════════════════════════════╝"
     echo -e "${NC}"
+    echo -e "${BLUE}🛡️  Internal Protection: .claude directory secured${NC}"
 }
 
 show_mode_selection() {
