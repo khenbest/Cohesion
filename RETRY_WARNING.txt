@@ -1,0 +1,10 @@
+⚠️ RETRY PATTERN DETECTED - PLEASE READ
+
+You have attempted Edit 2 times in DISCOVER state.
+
+STOP and check:
+1. Current state: DISCOVER
+2. What's allowed in this state
+3. Use 'cohesion can-i-edit' before trying again
+
+Delete this file after reading.

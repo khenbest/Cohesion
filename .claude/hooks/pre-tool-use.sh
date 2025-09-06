@@ -73,13 +73,29 @@ EOF
         case "$TOOL" in
             # Modification tools blocked in DISCOVER
             Write|Edit|MultiEdit|NotebookEdit)
+                # Track retry attempt and get JSON response
+                HOOK_DIR="$(dirname "${BASH_SOURCE[0]}")"
+                RETRY_INFO=$("$HOOK_DIR/retry-detector.sh" "$TOOL" "write_operation" "DISCOVER")
+                RETRY_DETECTED=$(echo "$RETRY_INFO" | jq -r '.retry_detected')
+                RETRY_COUNT=$(echo "$RETRY_INFO" | jq -r '.attempts')
+                
+                if [ "$RETRY_DETECTED" = "true" ]; then
+                    # Use enhanced message from retry detector
+                    REASON=$(echo "$RETRY_INFO" | jq -r '.message')
+                else
+                    # Use default reason
+                    REASON="🔍 DISCOVER STATE - Analysis Only\\n\\n❌ Cannot modify files yet\\n\\n✅ Available: Read, Grep, WebSearch, WebFetch\\n\\n🎯 Next Step: Present your plan, then say 'approved'\\n\\n💡 Tip: Use './cohesion status' to see current state"
+                fi
+                
                 cat <<EOF
 {
   "continue": false,
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "🔍 DISCOVER STATE - Analysis Only\\n\\n❌ Cannot modify files yet\\n\\n✅ Available: Read, Grep, WebSearch, WebFetch\\n\\n🎯 Next Step: Present your plan, then say 'approved'\\n\\n💡 Tip: Use './cohesion status' to see current state"
+    "permissionDecisionReason": "$REASON",
+    "retryCount": $RETRY_COUNT,
+    "currentState": "DISCOVER"
   }
 }
 EOF
@@ -96,13 +112,29 @@ EOF
                 if echo "$COMMAND" | grep -qE '^(git status|git log|git diff|ls|find|pwd|cat|head|tail|grep|ps|which)'; then
                     echo '{"continue": true}'
                 else
+                    # Track retry attempt and get JSON response
+                    HOOK_DIR="$(dirname "${BASH_SOURCE[0]}")"
+                    RETRY_INFO=$("$HOOK_DIR/retry-detector.sh" "Bash" "$COMMAND" "DISCOVER")
+                    RETRY_DETECTED=$(echo "$RETRY_INFO" | jq -r '.retry_detected')
+                    RETRY_COUNT=$(echo "$RETRY_INFO" | jq -r '.attempts')
+                    
+                    if [ "$RETRY_DETECTED" = "true" ]; then
+                        # Use enhanced message from retry detector
+                        REASON=$(echo "$RETRY_INFO" | jq -r '.message')
+                    else
+                        # Use default reason
+                        REASON="🔍 DISCOVER STATE - Only analysis bash commands allowed\\n\\nAllowed: git status, ls, find, grep, ps, etc."
+                    fi
+                    
                     cat <<EOF
 {
   "continue": false,
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse", 
     "permissionDecision": "deny",
-    "permissionDecisionReason": "🔍 DISCOVER STATE - Only analysis bash commands allowed\\n\\nAllowed: git status, ls, find, grep, ps, etc."
+    "permissionDecisionReason": "$REASON",
+    "retryCount": $RETRY_COUNT,
+    "currentState": "DISCOVER"
   }
 }
 EOF

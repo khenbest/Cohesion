@@ -95,8 +95,8 @@ create_file_safely() {
 show_banner() {
     echo -e "${CYAN}"
     echo "╔═══════════════════════════════════════╗"
-    echo "║       Cohesion DUO Protocol v2.1     ║"
-    echo "║   Advanced AI Workflow with Protection║"
+    echo "║       Cohesion + DUO Protocol         ║"
+    echo "║  Intelligent Process Augmentation     ║"
     echo "╚═══════════════════════════════════════╝"
     echo -e "${NC}"
     echo -e "${BLUE}🛡️  Internal Protection: .claude directory secured${NC}"
@@ -143,6 +143,13 @@ install_local() {
     cp "$SCRIPT_DIR/.claude/utils/state.sh" "$LOCAL_CLAUDE_DIR/utils/" 2>/dev/null || true
     cp "$SCRIPT_DIR/.claude/install.sh" "$LOCAL_CLAUDE_DIR/" 2>/dev/null || true
     
+    # Copy documentation if available
+    if [ -d "$SCRIPT_DIR/docs" ]; then
+        mkdir -p "$LOCAL_CLAUDE_DIR/docs"
+        cp -r "$SCRIPT_DIR/docs/"* "$LOCAL_CLAUDE_DIR/docs/" 2>/dev/null || true
+        echo -e "${GREEN}✓${NC} Documentation installed"
+    fi
+    
     # Make hooks executable
     chmod +x "$LOCAL_CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
     chmod +x "$LOCAL_CLAUDE_DIR/utils/state.sh" 2>/dev/null || true
@@ -181,6 +188,13 @@ install_global() {
     # Copy hooks and utilities
     cp -r "$SCRIPT_DIR/.claude/hooks/"* "$GLOBAL_COHESION_DIR/hooks/" 2>/dev/null || true
     cp "$SCRIPT_DIR/.claude/utils/state.sh" "$GLOBAL_COHESION_DIR/utils/" 2>/dev/null || true
+    
+    # Copy documentation if available
+    if [ -d "$SCRIPT_DIR/docs" ]; then
+        mkdir -p "$GLOBAL_COHESION_DIR/docs"
+        cp -r "$SCRIPT_DIR/docs/"* "$GLOBAL_COHESION_DIR/docs/" 2>/dev/null || true
+        echo -e "${GREEN}✓${NC} Documentation installed globally"
+    fi
     
     # Make hooks executable
     chmod +x "$GLOBAL_COHESION_DIR/hooks/"*.sh 2>/dev/null || true

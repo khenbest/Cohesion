@@ -84,7 +84,7 @@ get_directories() {
 get_directories
 
 show_help() {
-    printf "${CYAN}Cohesion DUO Protocol CLI v2.1${NC}\n"
+    printf "${CYAN}Cohesion CLI + DUO Protocol${NC}\n"
     echo ""
     echo "Usage: cohesion <command> [options]"
     echo ""
@@ -110,6 +110,10 @@ show_help() {
     echo "  use         Switch between local and global (when both exist)"
     echo "  uninstall   Remove Cohesion installation"
     echo ""
+    printf "${BLUE}Diagnostic Commands:${NC}\n"
+    echo "  can-i-edit  Check if you can currently edit files"
+    echo "  can-i-write Same as can-i-edit"
+    echo ""
     printf "${BLUE}Other Commands:${NC}\n"
     echo "  help        Show this help message"
     echo ""
@@ -117,10 +121,12 @@ show_help() {
     if [ "$USING_MODE" = "local" ]; then
         printf "${CYAN}Tip: Run 'cohesion upgrade' to make Cohesion work in all projects!${NC}\n"
     fi
-    echo ""
-    echo "State Workflow:"
-    echo "  DISCOVER -> (get approval) -> UNLEASH -> (complete/needs input) -> DISCOVER/OPTIMIZE"
-    echo ""
+  echo "DUO Protocol State Management:"
+  echo "  • DISCOVER: Analysis & planning (read-only tools)"
+  echo "  • UNLEASH: Implementation phase (full access to all tools)"
+  echo "  • OPTIMIze: Implementation phase (diagnostic tools)"
+  echo "  • States managed automatically by Claude Code hooks"
+  echo "  • No manual commands - workflow controlled by your interactions"
 }
 
 get_state() {
@@ -426,6 +432,13 @@ init_project() {
     # Copy all hooks from global installation
     cp -r "$GLOBAL_COHESION_DIR/hooks/"* ./.claude/hooks/
     cp -r "$GLOBAL_COHESION_DIR/utils/"* ./.claude/utils/ 2>/dev/null || true
+    
+    # Copy documentation if available
+    if [ -d "$GLOBAL_COHESION_DIR/docs" ]; then
+        mkdir -p ./.claude/docs
+        cp -r "$GLOBAL_COHESION_DIR/docs/"* ./.claude/docs/ 2>/dev/null || true
+        echo -e "${GREEN}✓${NC} Documentation installed"
+    fi
     
     # Create local settings.json using WORKING format (not experimental)
     cat > ./.claude/settings.json << 'EOF'
@@ -835,6 +848,53 @@ case "${1:-help}" in
         ;;
     debug)
         show_debug_info
+        ;;
+    can-i-edit|can-i-write)
+        STATE=$(get_state)
+        echo -e "${CYAN}Can I Edit Check${NC}"
+        echo "=================="
+        echo -e "Current State: ${YELLOW}$STATE${NC}"
+        echo ""
+        
+        case "$STATE" in
+            UNLEASH)
+                echo -e "${GREEN}✅ YES - You can edit files${NC}"
+                echo "You have full access to:"
+                echo "  • Write, Edit, MultiEdit"
+                echo "  • All Bash commands"
+                echo "  • All development tools"
+                ;;
+            DISCOVER)
+                echo -e "${RED}❌ NO - You cannot edit files${NC}"
+                echo "DISCOVER state restrictions:"
+                echo "  • ❌ Cannot: Write, Edit, MultiEdit"
+                echo "  • ❌ Cannot: Most Bash commands"
+                echo "  • ✅ Can: Read, Grep, Glob, WebSearch"
+                echo ""
+                echo "Ask user to change state or provide implementation plans"
+                ;;
+            OPTIMIZE)
+                echo -e "${YELLOW}⚠️ LIMITED - Collaborative mode${NC}"
+                echo "OPTIMIZE state restrictions:"
+                echo "  • ❌ Cannot: Write, MultiEdit"
+                echo "  • ⚠️ Maybe: Single Edit operations"
+                echo "  • ✅ Can: Read, Bash, Grep"
+                echo ""
+                echo "Suggest changes for user to implement"
+                ;;
+            *)
+                echo -e "${RED}⚠️ UNKNOWN STATE${NC}"
+                echo "State system may be misconfigured"
+                ;;
+        esac
+        
+        # Check for recent retry patterns
+        if [ -f "/Users/kenny/Claude/Cohesion/.claude/state/retry_status.md" ]; then
+            echo ""
+            echo -e "${YELLOW}Recent Activity:${NC}"
+            grep "RETRY LOOP DETECTED" "/Users/kenny/Claude/Cohesion/.claude/state/retry_status.md" 2>/dev/null && \
+                echo -e "${RED}⚠️ Retry loop detected - check retry_status.md${NC}"
+        fi
         ;;
     help|h|--help|-h)
         show_help
