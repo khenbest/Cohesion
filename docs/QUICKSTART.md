@@ -14,30 +14,32 @@
 
 ```bash
 # Option A: Clone from GitHub
-git clone https://github.com/yourusername/cohesion
-cd cohesion
+git clone https://github.com/khenbest/Cohesion
+cd Cohesion
 
 # Option B: Download and extract
-wget https://github.com/yourusername/cohesion/archive/main.zip
+wget https://github.com/khenbest/Cohesion/archive/main.zip
 unzip main.zip
-cd cohesion-main
+cd Cohesion-main
 ```
 
 ### Step 2: Install in Your Project
 
 ```bash
-# Copy framework to your project (from the cohesion directory)
-cp -r .claude ~/your-project/.claude
+# For global installation (recommended):
+./install.sh
 
-# Optional: Also copy the CLI tool
-cp cohesion ~/your-project/cohesion
+# For project-local installation:
+# Copy framework to your project (from the Cohesion directory)
+cp -r .claude ~/your-project/
+cp cohesion ~/your-project/
+cp install.sh ~/your-project/
 
 # Navigate to your project
 cd ~/your-project
 
 # Run installation script
-chmod +x .claude/install.sh
-./.claude/install.sh
+./install.sh
 ```
 
 ### Step 3: Restart Claude Code
@@ -88,14 +90,17 @@ You: "cohesion status"  # Check state is back to DISCOVER
 # Check current state
 cohesion status
 
-# Manual state control
-cohesion unleash   # Enter UNLEASH (full access)
-cohesion discover  # Enter DISCOVER (planning only)
-cohesion optimize  # Enter OPTIMIZE (collaborative mode)
-cohesion reset     # Start fresh
+# DUO Protocol commands
+cohesion duo-status        # Detailed DUO state information
+cohesion reset             # Reset to DISCOVER state
 
-# View statistics
-cohesion stats     # Show session stats
+# System verification
+cohesion safety-check      # Verify installation integrity
+cohesion protection-status # Show protection system status
+
+# Session information
+cohesion history          # Show state transition history
+cohesion stats            # Show session statistics
 ```
 
 ## 💬 Magic Keywords
@@ -183,12 +188,14 @@ chmod +x .claude/hooks/*.sh
 ### State Not Persisting?
 
 ```bash
-# Check state file exists
-ls -la .claude/state/session.json
+# Check state flags exist
+ls -la .claude/state/flags/
 
 # Reset if corrupted
-rm -rf .claude/state/
-./.claude/install.sh
+cohesion reset
+
+# Verify installation
+cohesion safety-check
 ```
 
 ### Missing jq?
@@ -222,4 +229,4 @@ Now that Cohesion is running:
 
 ---
 
-**Need help?** Check the [Troubleshooting Guide](guides/TROUBLESHOOTING.md) or [open an issue](https://github.com/yourusername/cohesion/issues).
+**Need help?** Check the [Troubleshooting Guide](guides/TROUBLESHOOTING.md) or [open an issue](https://github.com/khenbest/Cohesion/issues).

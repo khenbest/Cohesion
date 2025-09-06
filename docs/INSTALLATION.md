@@ -44,27 +44,26 @@ which jq || echo "jq not found (optional)"
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/cohesion.git
-cd cohesion
+git clone https://github.com/khenbest/Cohesion.git
+cd Cohesion
 
-# Copy to your project
-cp -r .claude ~/your-project/.claude
-cp cohesion ~/your-project/cohesion
+# For global installation:
+./install.sh
 
-# Make executable
+# For project-local installation:
+# Copy to your project first
+cp -r .claude ~/your-project/
+cp cohesion ~/your-project/
+cp install.sh ~/your-project/
 cd ~/your-project
-chmod +x .claude/install.sh
-chmod +x cohesion
-
-# Run installer
-./.claude/install.sh
+./install.sh
 ```
 
 ### Method 2: Direct Download
 
 ```bash
 # Download latest release
-curl -L https://github.com/yourusername/cohesion/archive/main.tar.gz | tar xz
+curl -L https://github.com/khenbest/Cohesion/archive/main.tar.gz | tar xz
 cd cohesion-main
 
 # Copy to your project
@@ -87,18 +86,18 @@ mkdir -p ~/your-project/.claude/{hooks,utils,state}
 cd ~/your-project/.claude
 
 # Get hooks
-for hook in session-start pre-tool-use post-tool-use detect-intent save-progress; do
-  curl -O https://raw.githubusercontent.com/yourusername/cohesion/main/.claude/hooks/${hook}.sh
+for hook in session-start session-end pre-tool-use post-tool-use detect-intent save-progress pre-compact; do
+  curl -O https://raw.githubusercontent.com/khenbest/Cohesion/main/.claude/hooks/${hook}.sh
 done
 
 # Get utilities
-curl -o utils/state.sh https://raw.githubusercontent.com/.../utils/state.sh
+curl -o utils/state.sh https://raw.githubusercontent.com/khenbest/Cohesion/main/.claude/utils/state.sh
 
 # Get settings
-curl -O https://raw.githubusercontent.com/.../settings.json
+curl -O https://raw.githubusercontent.com/khenbest/Cohesion/main/.claude/settings.local.json
 
 # Get installer
-curl -O https://raw.githubusercontent.com/.../install.sh
+curl -O https://raw.githubusercontent.com/khenbest/Cohesion/main/install.sh
 
 # Make executable
 chmod +x hooks/*.sh utils/*.sh install.sh
@@ -116,11 +115,9 @@ chmod +x hooks/*.sh utils/*.sh install.sh
 brew install jq
 
 # Install Cohesion
-git clone https://github.com/yourusername/cohesion.git
-cd cohesion
-cp -r .claude ~/your-project/.claude
-cd ~/your-project
-./.claude/install.sh
+git clone https://github.com/khenbest/Cohesion.git
+cd Cohesion
+./install.sh
 
 # Add to PATH (optional)
 echo 'export PATH="$PATH:$HOME/your-project"' >> ~/.zshrc
@@ -135,11 +132,9 @@ sudo apt-get update
 sudo apt-get install -y jq git curl
 
 # Install Cohesion
-git clone https://github.com/yourusername/cohesion.git
-cd cohesion
-cp -r .claude ~/your-project/.claude
-cd ~/your-project
-./.claude/install.sh
+git clone https://github.com/khenbest/Cohesion.git
+cd Cohesion
+./install.sh
 
 # Add to PATH (optional)
 echo 'export PATH="$PATH:$HOME/your-project"' >> ~/.bashrc
@@ -158,11 +153,9 @@ sudo apt-get update
 sudo apt-get install -y jq git
 
 # Install Cohesion
-git clone https://github.com/yourusername/cohesion.git
-cd cohesion
-cp -r .claude /mnt/c/Users/YourName/your-project/.claude
-cd /mnt/c/Users/YourName/your-project
-./.claude/install.sh
+git clone https://github.com/khenbest/Cohesion.git
+cd Cohesion
+./install.sh
 ```
 
 ### Windows (Git Bash)
@@ -172,38 +165,76 @@ cd /mnt/c/Users/YourName/your-project
 # Download jq for Windows from https://github.com/jqlang/jq/releases
 
 # In Git Bash:
-git clone https://github.com/yourusername/cohesion.git
-cd cohesion
-cp -r .claude ~/your-project/.claude
-cd ~/your-project
+git clone https://github.com/khenbest/Cohesion.git
+cd Cohesion
 
 # May need to adjust paths in scripts
-./.claude/install.sh
+./install.sh
+```
+
+## Protection System
+
+### Built-in Safety Features
+
+Cohesion includes comprehensive protection mechanisms:
+
+```bash
+# Protected Directories (cannot be modified):
+# .claude, .git, node_modules, .next, build, dist
+
+# Protected Files (cannot be modified):
+# .env, .env.local, .env.production
+
+# Check protection status
+./cohesion protection-status
+
+# Verify system integrity
+./cohesion safety-check
+```
+
+### Safety Commands
+
+```bash
+# Run comprehensive safety check
+./cohesion safety-check
+
+# Expected output:
+# 🛡️  Cohesion Safety Check
+# ✅ Installation integrity verified
+# ✅ Hook system operational  
+# ✅ State management functional
+# ✅ Protection system active
 ```
 
 ## Configuration
 
 ### Basic Configuration
 
-The installer creates a default configuration at `.claude/settings.json`:
+The installer creates a default configuration at `.claude/settings.local.json`:
 
 ```json
 {
-  "hooks": {
-    "sessionStarted": [{
-      "matcher": "*",
-      "hooks": [{
-        "type": "command",
-        "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh"
-      }]
-    }],
-    "preToolUse": [{
-      "matcher": "*",
-      "hooks": [{
-        "type": "command",
-        "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-tool-use.sh"
-      }]
-    }]
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Grep(**)", 
+      "Glob(**)",
+      "Write(**)",
+      "Edit(**)",
+      "MultiEdit(**)",
+      "Bash(git status)",
+      "Bash(./cohesion:*)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Write(./.env*)",
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
+    ]
   }
 }
 ```
@@ -243,10 +274,14 @@ echo 'echo "DEBUG: Hook triggered" >&2' >> .claude/hooks/session-start.sh
 # Verify files exist
 ls -la .claude/hooks/*.sh
 ls -la .claude/utils/*.sh
-ls -la .claude/settings.json
+ls -la .claude/settings.local.json
 
 # Check permissions
 find .claude -name "*.sh" -exec ls -l {} \;
+
+# Verify protection system
+./cohesion safety-check
+./cohesion protection-status
 ```
 
 ### Step 2: Test CLI
@@ -257,9 +292,15 @@ find .claude -name "*.sh" -exec ls -l {} \;
 
 # Expected output:
 # 🎯 Cohesion Status
-# State: DISCOVER
+# State: DISCOVER 🔍
 # Session: active
 # Duration: 0m
+
+# Test safety check
+./cohesion safety-check
+
+# Test protection status
+./cohesion protection-status
 ```
 
 ### Step 3: Test Hooks
@@ -268,20 +309,27 @@ find .claude -name "*.sh" -exec ls -l {} \;
 # Test session start hook
 .claude/hooks/session-start.sh
 
-# Test state management
-.claude/utils/state.sh get
-.claude/utils/state.sh set UNLEASH "Test"
-.claude/utils/state.sh get
+# Check flag-based state system
+ls -la .claude/state/flags/
+
+# Test state transitions
+./cohesion duo-status
 ```
 
 ### Step 4: Claude Code Integration
 
 1. **Restart Claude Code**
 2. Start a new conversation
-3. Check that hooks are firing:
+3. Check that DUO Protocol is active:
 
 ```bash
-# Watch hook activity
+# Check current state
+./cohesion status
+
+# View DUO Protocol status
+./cohesion duo-status
+
+# Watch state transitions (optional)
 tail -f .claude/state/*.log
 ```
 
@@ -382,15 +430,17 @@ chmod 644 .claude/settings.json
 #### State Not Persisting
 
 ```bash
-# Check state directory exists
-mkdir -p .claude/state
+# Check state directories exist
+mkdir -p .claude/state/flags
 
-# Check write permissions
-touch .claude/state/test && rm .claude/state/test
+# Check flag-based state system
+ls -la .claude/state/flags/
 
-# Reset state
-rm -rf .claude/state/*
-cohesion reset
+# Reset state using CLI
+./cohesion reset
+
+# Verify state system
+./cohesion safety-check
 ```
 
 #### jq Not Found
@@ -407,9 +457,14 @@ cohesion reset
 ### Debug Mode
 
 ```bash
-# Enable debug output
-# Add debug output to hooks
-echo 'echo "DEBUG: Hook triggered" >&2' >> .claude/hooks/session-start.sh
+# Check DUO Protocol status
+./cohesion duo-status
+
+# Run comprehensive diagnostics
+./cohesion safety-check
+
+# Enable debug output in hooks (if needed)
+echo 'echo "DEBUG: Hook triggered at $(date)" >&2' >> .claude/hooks/session-start.sh
 
 # Run with trace
 bash -x .claude/hooks/session-start.sh
@@ -421,8 +476,8 @@ tail -f .claude/state/*.log
 ### Getting Help
 
 1. Check [Troubleshooting Guide](guides/TROUBLESHOOTING.md)
-2. Search [GitHub Issues](https://github.com/yourusername/cohesion/issues)
-3. Ask in [Discussions](https://github.com/yourusername/cohesion/discussions)
+2. Search [GitHub Issues](https://github.com/khenbest/Cohesion/issues)
+3. Ask in [Discussions](https://github.com/khenbest/Cohesion/discussions)
 4. Contact support
 
 ---

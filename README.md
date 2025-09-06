@@ -1,9 +1,9 @@
 # Cohesion 
 Cohesion is an **intelligent process augmentation for Claude Code** that transforms Claude Code from a chaotic code cowboy to your cool, calm, collaborative partner through enforcement of the **DUO Protocol**:
 
-1. **DISCOVER** 🔍 - Claude analyzes and plans with you (no write access)
-2. **UNLEASH** ⚡ - Claude executes autonomously (full access)  
-3. **OPTIMIZE** ✨ - Claude discusses blockers or refinements with you (diagnostic tools only)
+**DISCOVER** 🔍 - Claude analyzes and plans with you (no write access)
+**UNLEASH** ⚡ - Claude executes autonomously (full access)  
+**OPTIMIZE** ✨ - Claude discusses blockers or refinements with you (diagnostic tools only)
 
 _Claude Code, now with impulse control!_
 
@@ -23,8 +23,8 @@ Cohesion aims to resolve these inconvenient behaviors with clear guardrails and 
 git clone https://github.com/khenbest/Cohesion
 cd Cohesion
 
-# 2. Install globally
-./install.sh --global
+# 2. Install globally (auto-detects mode)
+./install.sh
 
 # 3. Initialize any project
 cd ~/your-project
@@ -35,12 +35,12 @@ cohesion init
 
 ### Option 2: Project-Local Installation
 ```bash
-# 1. Clone Cohesion
-git clone https://github.com/khenbest/Cohesion
-cd Cohesion
+# 1. Clone Cohesion to your project
+cd ~/your-project
+git clone https://github.com/khenbest/Cohesion .
 
-# 2. Install locally
-./install.sh --local
+# 2. Install locally (auto-detects mode)
+./install.sh
 
 # 3. Start Claude Code from this directory
 ```
@@ -49,20 +49,22 @@ cd Cohesion
 
 ```
 .claude/
-├── settings.json          # Hook configuration (ready to use)
+├── settings.local.json    # Hook configuration (ready to use)
 ├── hooks/
-│   ├── session-start.sh   # SessionStart hook - Initializes state
-│   ├── session-end.sh     # SessionEnd hook - Saves state
-│   ├── pre-tool-use.sh    # PreToolUse hook - Controls tool access
-│   ├── bash-validator.sh  # PreToolUse hook - Validates bash commands
-│   ├── post-tool-use.sh   # PostToolUse hook - Tracks usage
-│   ├── detect-intent.sh   # UserPromptSubmit hook - Detects keywords
-│   ├── save-progress.sh   # Stop hook - Saves work progress
-│   └── pre-compact.sh     # PreCompact hook - Preserves state
+│   ├── session-start.sh   # SessionStart hook - Initializes DUO state
+│   ├── session-end.sh     # SessionEnd hook - Cleanup and persistence
+│   ├── pre-tool-use.sh    # PreToolUse hook - DUO Protocol access control
+│   ├── post-tool-use.sh   # PostToolUse hook - Usage tracking
+│   ├── detect-intent.sh   # UserPromptSubmit hook - Keyword detection
+│   ├── save-progress.sh   # Stop hook - Progress preservation
+│   └── pre-compact.sh     # PreCompact hook - State preservation
 ├── utils/
 │   └── state.sh          # State management utilities
-├── install.sh            # One-click installation
-└── state/               # Session persistence (auto-created)
+├── context/
+│   └── duo-status.md      # Live DUO Protocol status (auto-generated)
+└── state/
+    ├── flags/             # Flag-based state management
+    └── *.log              # Session logs (auto-created)
 ```
 
 ## 💬 How to Use It
@@ -90,14 +92,17 @@ cd Cohesion
 # Check current state
 ./cohesion status
 
-# Manual state control  
-./cohesion unleash   # Enter UNLEASH state
-./cohesion discover  # Enter DISCOVER state
-./cohesion optimize  # Enter OPTIMIZE state
-./cohesion reset     # Start fresh
+# DUO Protocol status
+./cohesion duo-status    # Detailed state information
+./cohesion reset         # Reset to DISCOVER state
 
-# View statistics
-./cohesion stats     # Show tool usage stats
+# System verification
+./cohesion safety-check      # Verify installation integrity
+./cohesion protection-status # Show protection system status
+
+# Session information
+./cohesion history      # Show state transition history
+./cohesion stats        # Show session statistics
 ```
 
 ## 🛠️ Customization
@@ -116,17 +121,20 @@ detect_approval() {
 
 ### Change Tool Permissions
 
-Edit `.claude/hooks/pre-tool-use.sh`:
-```bash
-DISCOVER)
-    # Customize what's allowed in DISCOVER state
-    case "$TOOL" in
-        Write|Edit|YourTool)
-            # Deny these tools
-            ;;
-        Read|Grep|YourSafeTool)
-            # Allow these tools
-            ;;
+Edit `.claude/settings.local.json`:
+```json
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "YourCustomTool(**)"
+    ],
+    "deny": [
+      "Write(./.env*)",
+      "YourBlockedTool(**)"
+    ]
+  }
+}
 ```
 
 
@@ -194,15 +202,17 @@ chmod +x .claude/hooks/*.sh
 
 ### State not persisting?
 ```bash
-# Check state file
-cat .claude/state/session.json
+# Check state flags
+ls -la .claude/state/flags/
 
 # Check permissions
 ls -la .claude/state/
 
 # Manual reset
-rm -rf .claude/state/
-./.claude/install.sh
+./cohesion reset
+
+# Verify state management
+./cohesion safety-check
 ```
 
 ### Need jq?
@@ -218,11 +228,16 @@ apt-get install jq
 
 ### Multi-Project Setup
 ```bash
-# Share config across projects
-ln -s ~/cohesion-global/.claude ~/.claude
+# Global installation (recommended)
+cd ~/Cohesion
+./install.sh  # Auto-detects global mode
 
-# Or source from global
-source ~/cohesion-global/state.sh
+# Then initialize any project
+cd ~/your-project
+cohesion init
+
+# Check installation mode
+cohesion status
 ```
 
 ## 📖 Documentation
@@ -244,12 +259,4 @@ source ~/cohesion-global/state.sh
 - [🔄 Workflow Guide](docs/templates/project/WORKFLOW.md) - Define workflows
 
 ## 📄 License
-
 MIT - Use freely in your projects
-
-## 🔗 Based On
-
-Inspired by one too many nights without sleep, internal screaming, and a desire to save just one developer's sanity. 
----
-
-**Ready to use immediately. No build required. Just copy, install, and go.**

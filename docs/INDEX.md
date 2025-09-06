@@ -52,9 +52,10 @@ Example templates for your projects (copy and customize):
 
 ### Core Commands
 - `cohesion status` - Check current state
-- `cohesion unleash` - Enter UNLEASH state
-- `cohesion discover` - Enter DISCOVER state  
-- `cohesion optimize` - Enter OPTIMIZE state
+- `cohesion status` - Show current DUO state
+- `cohesion duo-status` - Detailed state information
+- `cohesion reset` - Reset to DISCOVER state
+- `cohesion safety-check` - Verify installation integrity
 - `cohesion reset` - Reset state
 - `cohesion help` - Show all commands
 

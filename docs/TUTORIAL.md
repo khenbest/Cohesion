@@ -144,8 +144,8 @@ You: "Try adding 'type: module' to package.json"
 ### Exercise 3.3: Manual State Control
 
 ```bash
-# Force OPTIMIZE state
-cohesion optimize
+# Check detailed DUO Protocol state
+cohesion duo-status
 
 # Verify
 cohesion status
@@ -254,9 +254,9 @@ If things go wrong:
 # Complete reset
 cohesion reset
 
-# Force specific state
-cohesion unleash     # Full access
-cohesion discover # Planning only
+# Check current state and capabilities
+cohesion duo-status  # Detailed state information
+cohesion reset       # Reset to DISCOVER state
 
 # Check logs
 tail -f .claude/state/*.log
@@ -336,9 +336,9 @@ Add to your shell profile:
 ```bash
 # ~/.bashrc or ~/.zshrc
 alias cs='cohesion status'
-alias cf='cohesion unleash'
-alias ct='cohesion discover'
+alias cd='cohesion duo-status'
 alias cr='cohesion reset'
+alias cc='cohesion safety-check'
 ```
 
 ### Project Templates
@@ -380,7 +380,7 @@ cohesion status
    - Answer: Nothing - no tool access
 
 4. **How do you manually enter UNLEASH state?**
-   - Answer: `cohesion unleash`
+   - Answer: Say "approved", "lgtm", or "proceed" after Claude presents a plan
 
 5. **What happens after Claude completes a task in UNLEASH?**
    - Answer: Returns to DISCOVER
@@ -437,4 +437,4 @@ Congratulations! You now understand:
 
 ---
 
-**Questions?** See [FAQ](guides/FAQ.md) or [open an issue](https://github.com/yourusername/cohesion/issues)
+**Questions?** See [FAQ](guides/FAQ.md) or [open an issue](https://github.com/khenbest/Cohesion/issues)

@@ -142,9 +142,15 @@ graph LR
 
 ```bash
 # Force state transitions
-cohesion unleash   # → UNLEASH
-cohesion discover  # → DISCOVER  
-cohesion optimize  # → OPTIMIZE
+# State transitions happen through keywords:
+# "approved" → UNLEASH
+# "reset" → DISCOVER
+# "unclear" → OPTIMIZE
+
+# CLI commands:
+cohesion status      # Check current state
+cohesion duo-status  # Detailed information
+cohesion reset       # Return to DISCOVER
 cohesion reset     # → Fresh DISCOVER
 ```
 
@@ -363,7 +369,7 @@ fi
 **Issue**: Stuck in DISCOVER
 ```bash
 # Force transition
-cohesion unleash
+# Use keyword "approved" to enter UNLEASH state
 
 # Or use keyword
 echo "approved" | nc localhost 5000
