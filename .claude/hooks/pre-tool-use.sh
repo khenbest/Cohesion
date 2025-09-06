@@ -15,14 +15,25 @@ if [ -d "$HOME/.cohesion" ] && [ "$SCRIPT_DIR" = "$HOME/.cohesion/hooks" ]; then
     # Global mode - use project-specific state directory
     PROJECT_PATH=$(pwd)
     PROJECT_HASH=$(echo "$PROJECT_PATH" | shasum -a 256 | cut -c1-16)
-    STATE_FILE="$HOME/.cohesion/states/$PROJECT_HASH/session.json"
+    STATE_DIR="$HOME/.cohesion/states/$PROJECT_HASH"
 else
     # Local mode - use local state directory
-    STATE_FILE="$SCRIPT_DIR/../state/session.json"
+    STATE_DIR="$SCRIPT_DIR/../state"
 fi
 
-# Fast state lookup
-STATE=$(jq -r '.state // "DISCOVER"' "$STATE_FILE" 2>/dev/null || echo "DISCOVER")
+# DUO Protocol state flags
+FLAG_DIR="$STATE_DIR/flags"
+UNLEASHED_FLAG="$FLAG_DIR/unleashed"
+OPTIMIZING_FLAG="$FLAG_DIR/optimizing"
+
+# Determine current DUO state
+if [ -f "$UNLEASHED_FLAG" ]; then
+    STATE="UNLEASH"
+elif [ -f "$OPTIMIZING_FLAG" ]; then
+    STATE="OPTIMIZE"
+else
+    STATE="DISCOVER"
+fi
 
 # Quick permission check based on state
 case "$STATE" in
@@ -58,8 +69,9 @@ EOF
         ;;
         
     DISCOVER)
-        # DISCOVER state - can do everything except edit code
+        # DUO Protocol: DISCOVER State - Analysis + Research Tools
         case "$TOOL" in
+            # Modification tools blocked in DISCOVER
             Write|Edit|MultiEdit|NotebookEdit)
                 cat <<EOF
 {
@@ -67,15 +79,37 @@ EOF
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "⛔ TOOL OPTIMIZE: $TOOL prohibited in DISCOVER state\n\nCURRENT STATE: DISCOVER\nPROHIBITED: Write, Edit, MultiEdit, NotebookEdit\n\nREQUIRED FIRST:\n1. Complete analysis\n2. Present plan\n3. Get approval\n\nUse Read/Grep/Bash for analysis only."
+    "permissionDecisionReason": "🔍 DUO PROTOCOL: DISCOVER STATE\\n\\nPROHIBITED: Write, Edit, or modification tools\\n\\nREQUIRED WORKFLOW:\\n1. Analyze using Read/Grep/Research tools\\n2. Present comprehensive plan\\n3. Wait for user approval to UNLEASH"
   }
 }
 EOF
                 exit 0
                 ;;
-                
+            # Research and analysis tools always allowed
+            Read|Grep|Glob|WebSearch|WebFetch)
+                echo '{"continue": true, "systemMessage": "🔍 DISCOVER STATE - Research tools available"}'
+                exit 0
+                ;;
+            # Limited bash commands for analysis
+            Bash)
+                COMMAND=$(echo "$ARGS" | jq -r '.command // ""')
+                if echo "$COMMAND" | grep -qE '^(git status|git log|git diff|ls|find|pwd|cat|head|tail|grep|ps|which)'; then
+                    echo '{"continue": true}'
+                else
+                    cat <<EOF
+{
+  "continue": false,
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse", 
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "🔍 DISCOVER STATE - Only analysis bash commands allowed\\n\\nAllowed: git status, ls, find, grep, ps, etc."
+  }
+}
+EOF
+                fi
+                exit 0
+                ;;
             *)
-                # All other tools allowed (Read, Bash, Grep, etc.)
                 echo '{"continue": true}'
                 exit 0
                 ;;

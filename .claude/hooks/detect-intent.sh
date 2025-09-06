@@ -1,6 +1,6 @@
 #!/bin/bash
-# Cohesion - Intent Detection Hook
-# Fast pattern matching for state transitions
+# Cohesion DUO Protocol - Intent Detection Hook
+# Enforces the DUO workflow: DISCOVER → UNLEASH → OPTIMIZE
 
 set -euo pipefail
 
@@ -13,22 +13,28 @@ if [ -d "$HOME/.cohesion" ] && [ "$SCRIPT_DIR" = "$HOME/.cohesion/hooks" ]; then
     # Global mode - use project-specific state directory
     PROJECT_PATH=$(pwd)
     PROJECT_HASH=$(echo "$PROJECT_PATH" | shasum -a 256 | cut -c1-16)
-    STATE_FILE="$HOME/.cohesion/states/$PROJECT_HASH/session.json"
+    STATE_DIR="$HOME/.cohesion/states/$PROJECT_HASH"
+    STATE_FILE="$STATE_DIR/session.json"
 else
     # Local mode - use local state directory
-    STATE_FILE="$SCRIPT_DIR/../state/session.json"
+    STATE_DIR="$SCRIPT_DIR/../state"
+    STATE_FILE="$STATE_DIR/session.json"
 fi
 
-LOCK_FILE="${STATE_FILE}.lock"
+# DUO Protocol state flags
+FLAG_DIR="$STATE_DIR/flags"
+UNLEASHED_FLAG="$FLAG_DIR/unleashed"
+OPTIMIZING_FLAG="$FLAG_DIR/optimizing"
+mkdir -p "$FLAG_DIR"
 
-# Acquire lock for atomic state operations (timeout after 2 seconds)
-exec 200>"$LOCK_FILE"
-if ! flock -w 2 200; then
-    echo '{"continue": true, "warning": "State file locked - continuing without state update"}'
-    exit 0
+# Determine current DUO state
+if [ -f "$UNLEASHED_FLAG" ]; then
+    CURRENT_STATE="UNLEASH"
+elif [ -f "$OPTIMIZING_FLAG" ]; then
+    CURRENT_STATE="OPTIMIZE"
+else
+    CURRENT_STATE="DISCOVER"
 fi
-
-CURRENT_STATE=$(jq -r '.state // "DISCOVER"' "$STATE_FILE" 2>/dev/null || echo "DISCOVER")
 
 # Fast keyword detection using case statement
 detect_approval() {
@@ -95,35 +101,63 @@ if detect_reset; then
     exit 0
 fi
 
-case "$CURRENT_STATE" in
-    DISCOVER)
-        if detect_approval; then
-            # Transition to UNLEASH
+# DUO Protocol Transition: DISCOVER → UNLEASH (User Approval)
+if [ "$CURRENT_STATE" = "DISCOVER" ]; then
+    if detect_approval; then
+        # Check for weak single-word approvals
+        if [[ "$MESSAGE" =~ ^(yes|ok|sure|yep|yeah)$ ]]; then
+            cat <<EOF
+{
+  "continue": true,
+  "systemMessage": "⚠️ DUO PROTOCOL: Weak approval detected\\n\\nPlease confirm with: 'approved', 'proceed', or 'lgtm' to enter UNLEASH state"
+}
+EOF
+            exit 0
+        else
+            # Strong approval - DISCOVER → UNLEASH
+            touch "$UNLEASHED_FLAG"
+            rm -f "$OPTIMIZING_FLAG" 2>/dev/null
+            echo "Plan unleashed at $(date)" > "$UNLEASHED_FLAG"
             jq '. + {"state": "UNLEASH", "timestamp": '"$NOW"', "approved_at": '"$NOW"'}' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
-            echo '{"continue": true, "systemMessage": "✅ Plan approved - entering UNLEASH state\n\nYou now have full tool access. Work autonomously."}'
+            cat <<EOF
+{
+  "continue": true,
+  "systemMessage": "⚡ DUO PROTOCOL: UNLEASH STATE ACTIVATED\\n\\nYou now have full autonomous execution power. Work independently until task completion or blocker."
+}
+EOF
             exit 0
         fi
-        ;;
-        
-    UNLEASH)
-        if detect_consultation; then
-            # Transition to OPTIMIZE
-            jq '. + {"state": "OPTIMIZE", "timestamp": '"$NOW"'}' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
-            echo '{"continue": true, "systemMessage": "🤝 OPTIMIZE STATE ACTIVE\n\nStop all execution. You need user input before continuing.\n\nWHY YOU ARE HERE:\n• You detected complexity beyond the approved plan\n• Multiple valid approaches exist - user preference needed\n• You are spiraling or overthinking - need redirection\n• Scope or requirements became unclear during implementation\n\nIMMEDIATE ACTIONS:\n• STOP all tool usage and modifications\n• EXPLAIN the situation clearly to the user\n• PRESENT options if there are multiple paths\n• WAIT for user guidance - do not attempt to proceed\n\nWHAT TO SHARE WITH USER:\n• What you were trying to do\n• What complication or choice point arose\n• What options exist (if applicable)\n• What specific input you need to continue\n\nThe user will either:\n- Provide detailed guidance for complex situations\n- Give simple redirection if you are overthinking\n- Clarify requirements if something was ambiguous\n\nDo NOT attempt workarounds or independent solutions. Wait for clear direction."}'
-            exit 0
-        fi
-        ;;
-        
-    OPTIMIZE)
-        # Look for guidance or clarification
-        if echo "$MESSAGE" | grep -qE 'try|solution|fixed|resolved|here|should|instead|approach|prefer|just do|keep it simple'; then
-            # Back to DISCOVER to process the guidance
-            jq '. + {"state": "DISCOVER", "timestamp": '"$NOW"'}' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
-            echo '{"continue": true, "systemMessage": "💡 GUIDANCE RECEIVED - RETURNING TO DISCOVER STATE\n\nRe-analyze with the user input. Incorporate their preferences and clarifications.\n\nPROHIBITED:\n• Modifications remain prohibited\n• Do NOT implement yet\n\nREQUIRED:\n1. Integrate the user guidance into your approach\n2. Present updated plan if it changed significantly\n3. Wait for approval before implementing"}'
-            exit 0
-        fi
-        ;;
-esac
+    fi
+fi
+
+# DUO Protocol Transition: Any State → OPTIMIZE (Help/Consultation)
+if [[ "$MESSAGE" =~ ("unclear"|"which approach"|"preference"|"help"|"confused"|"what do you think"|"need advice") ]]; then
+    if [ "$CURRENT_STATE" != "OPTIMIZE" ]; then
+        touch "$OPTIMIZING_FLAG"
+        rm -f "$UNLEASHED_FLAG" 2>/dev/null
+        jq '. + {"state": "OPTIMIZE", "timestamp": '"$NOW"'}' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+        cat <<EOF
+{
+  "continue": true,
+  "systemMessage": "🤝 DUO PROTOCOL: OPTIMIZE STATE ACTIVATED\\n\\nCollaborative consultation mode. You have research tools to help analyze and discuss the best approach."
+}
+EOF
+        exit 0
+    fi
+fi
+
+# User provides guidance (Any State → DISCOVER)
+if [[ "$MESSAGE" =~ ("try this"|"here's how"|"the solution"|"you should"|"instead"|"the problem is") ]]; then
+    rm -f "$UNLEASHED_FLAG" "$OPTIMIZING_FLAG" 2>/dev/null
+    jq '. + {"state": "DISCOVER", "timestamp": '"$NOW"'}' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+    cat <<EOF
+{
+  "continue": true,
+  "systemMessage": "💡 DUO PROTOCOL: Guidance received - Back to DISCOVER\\n\\nAnalyze the new guidance and present updated plan for approval."
+}
+EOF
+    exit 0
+fi
 
 # No state change needed - add reminder based on current state
 case "$CURRENT_STATE" in

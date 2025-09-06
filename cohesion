@@ -83,16 +83,14 @@ get_directories() {
 get_directories
 
 show_help() {
-    printf "${CYAN}Cohesion CLI v2.0${NC}\n"
+    printf "${CYAN}Cohesion DUO Protocol CLI v2.1${NC}\n"
     echo ""
     echo "Usage: cohesion <command> [options]"
     echo ""
-    printf "${BLUE}State Commands:${NC}\n"
-    echo "  status      Show current state and session info"
-    echo "  unleash     Transition to UNLEASH state (user approval only)"
-    echo "  discover    Transition to DISCOVER state"
-    echo "  optimize    Transition to OPTIMIZE state"
-    echo "  reset       Reset to fresh DISCOVER state"
+    printf "${BLUE}DUO Protocol Commands:${NC}\n"
+    echo "  status      Show current DUO state and capabilities"
+    echo "  duo-status  Show detailed DUO Protocol status"
+    echo "  reset       Reset to DISCOVER state"
     echo "  history     Show state transition history"
     echo "  stats       Show session statistics"
     echo ""
@@ -140,6 +138,54 @@ set_state() {
         echo '{"state": "'"$NEW_STATE"'", "timestamp": '"$NOW"'}' > "$STATE_FILE"
     fi
     echo -e "${GREEN}✓${NC} State changed to ${YELLOW}$NEW_STATE${NC}"
+}
+
+# DUO Protocol status display
+show_duo_status() {
+    echo -e "${CYAN}Cohesion DUO Protocol Status${NC}\n"
+
+    local STATE_DIR_FOR_FLAGS
+    if [ "$USING_MODE" = "global" ]; then
+        STATE_DIR_FOR_FLAGS="$GLOBAL_COHESION_DIR/states/$PROJECT_HASH"
+    else
+        STATE_DIR_FOR_FLAGS="$LOCAL_CLAUDE_DIR/state"
+    fi
+    
+    local FLAG_DIR="$STATE_DIR_FOR_FLAGS/flags"
+
+    if [ -f "$FLAG_DIR/unleashed" ]; then
+        echo -e "State: ${GREEN}UNLEASH ⚡${NC} - Autonomous execution active"
+        echo "Unleashed: $(cat "$FLAG_DIR/unleashed")"
+    elif [ -f "$FLAG_DIR/optimizing" ]; then
+        echo -e "State: ${YELLOW}OPTIMIZE 🤝${NC} - Collaborative consultation mode"
+    else
+        echo -e "State: ${BLUE}DISCOVER 🔍${NC} - Analysis and planning mode"
+    fi
+
+    echo ""
+    echo -e "${BLUE}Available Research Tools:${NC}"
+    echo "• Read, Grep, Glob - Code analysis"
+    echo "• WebSearch, WebFetch - External research"
+    echo "• Git inspection commands"
+
+    if [ -f ".claude/context/duo-status.md" ]; then
+        echo ""
+        echo -e "${BLUE}Full capabilities:${NC} .claude/context/duo-status.md"
+    fi
+}
+
+duo_reset() {
+    local STATE_DIR_FOR_FLAGS
+    if [ "$USING_MODE" = "global" ]; then
+        STATE_DIR_FOR_FLAGS="$GLOBAL_COHESION_DIR/states/$PROJECT_HASH"
+    else
+        STATE_DIR_FOR_FLAGS="$LOCAL_CLAUDE_DIR/state"
+    fi
+    
+    local FLAG_DIR="$STATE_DIR_FOR_FLAGS/flags"
+    rm -f "$FLAG_DIR/unleashed" "$FLAG_DIR/optimizing" 2>/dev/null
+    set_state "DISCOVER"
+    echo -e "${GREEN}✓${NC} DUO Protocol reset to DISCOVER state"
 }
 
 show_status() {
@@ -600,19 +646,11 @@ case "${1:-help}" in
     status|s)
         show_status
         ;;
-    unleash|u)
-        set_state "UNLEASH"
-        ;;
-    discover|d)
-        set_state "DISCOVER"
-        ;;
-    optimize|o)
-        set_state "OPTIMIZE"
+    duo-status)
+        show_duo_status
         ;;
     reset|r)
-        rm -f "$STATE_FILE"
-        set_state "DISCOVER"
-        echo -e "${GREEN}✓${NC} Session reset"
+        duo_reset
         ;;
     which|w)
         show_which

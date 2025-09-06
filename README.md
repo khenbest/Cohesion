@@ -8,13 +8,12 @@ Cohesion is an **intelligent process augmentation for Claude Code** that transfo
 _Claude Code, now with impulse control!_
 
 Without Cohesion, Claude Code can be unpredictable. You may have watched with horror as Claude:
-
 a. makes irrelevant or harmful changes without a clear plan
 b. immediately begins coding when you want to discuss said plan
 c. works according to the perfect plan, but slowly loses context
 d. All of the above (aka death spiral)
 
-Cohesion aims to resolve these inconvenient behaviors with clear guardrails and processes - all documented for your approval and (most importantly) consistently maintained between sessions. 
+Cohesion aims to resolve these inconvenient behaviors with clear guardrails and processes - all documented for your approval and (most importantly) consistently maintained between sessions!
 
 ## 🚀 Quick Start (2 minutes)
 

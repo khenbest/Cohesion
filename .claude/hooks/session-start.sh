@@ -57,11 +57,51 @@ if [ -f "$WORK_FILE" ]; then
     fi
 fi
 
-# Load project context if exists
-if [ -f "$CONTEXT_FILE" ]; then
-    echo "{\"continue\": true, \"systemMessage\": \"🚀 COHESION INITIALIZED - DISCOVER STATE\\n\\nAnalyze the request carefully and consider the optimal outcome. Find the simplest working solution.$WORK_CONTEXT\\n\\nPROHIBITED:\\n• Write, Edit, or modification tools\\n\\nREQUIRED:\\n1. Analyze using Read/Grep only\\n2. Present comprehensive plan\\n3. Wait for approval before modifications\\n\\nContext loaded from CONTEXT.md.\"}"
-else
-    echo "{\"continue\": true, \"systemMessage\": \"🚀 COHESION INITIALIZED - DISCOVER STATE\\n\\nAnalyze the request carefully and consider the optimal outcome. Find the simplest working solution.$WORK_CONTEXT\\n\\nPROHIBITED:\\n• Write, Edit, or modification tools\\n\\nREQUIRED:\\n1. Analyze using Read/Grep only\\n2. Present comprehensive plan\\n3. Wait for approval before modifications\\n\\nTip: Create docs/CONTEXT.md for persistent context.\"}"
-fi
+# Create DUO Protocol directories
+CONTEXT_DIR="$SCRIPT_DIR/../context"
+FLAG_DIR="$STATE_DIR/flags"
+mkdir -p "$CONTEXT_DIR" "$FLAG_DIR"
+
+# DUO Protocol ALWAYS starts in DISCOVER state
+rm -f "$FLAG_DIR/unleashed" "$FLAG_DIR/optimizing" 2>/dev/null
+
+# Create DUO Protocol status document
+cat > "$CONTEXT_DIR/duo-status.md" << 'EOF'
+# Cohesion DUO Protocol Status: DISCOVER 🔍
+
+## Current Capabilities (DISCOVER State):
+✅ **Analysis Tools**: Read, Grep, Glob for code exploration
+✅ **Research Tools**: WebSearch, WebFetch for external research  
+✅ **Git Inspection**: git status, git log, git diff
+✅ **System Analysis**: ls, find, ps, basic bash commands
+
+❌ **Prohibited**: Write, Edit, MultiEdit, complex bash commands
+❌ **Cannot**: Modify files or execute deployment commands
+
+## DUO Protocol Workflow:
+1. **DISCOVER** 🔍 - **[CURRENT STATE]** Analyze request thoroughly
+2. **Present Plan** - Show comprehensive analysis and proposed solution
+3. **Wait for Approval** - User says "approved", "lgtm", or "proceed"
+4. **UNLEASH** ⚡ - Gain full autonomous execution power
+5. **Complete Task** - Return to DISCOVER for next request
+
+## State Transition Keywords:
+- **DISCOVER → UNLEASH**: "approved", "lgtm", "proceed", "looks good", "ship it"
+- **ANY → OPTIMIZE**: "unclear", "which approach", "help", "confused"
+- **ANY → DISCOVER**: "reset", "start over", "new task"
+
+## Remember:
+- You cannot change your own state with commands
+- Research tools (WebSearch/WebFetch) available in DISCOVER and OPTIMIZE
+- Present thorough analysis before requesting approval
+EOF
+
+# Send DUO Protocol initialization message
+cat <<EOF
+{
+  "continue": true,
+  "systemMessage": "🚀 COHESION DUO PROTOCOL INITIALIZED\\n\\nCurrent State: DISCOVER 🔍\\n\\n## Your Mission:\\n• Analyze the request thoroughly using Read/Grep/WebSearch\\n• Explore the codebase and understand current state\\n• Research external resources if needed\\n• Present comprehensive plan with clear reasoning\\n• Wait for user approval to enter UNLEASH state\\n\\n## Available Tools:\\n✅ Read, Grep, Glob - Code analysis\\n✅ WebSearch, WebFetch - External research\\n✅ Git inspection commands\\n✅ System exploration (ls, find, ps)\\n\\n❌ No modification tools until UNLEASH state$WORK_CONTEXT\\n\\nDUO Protocol Status: .claude/context/duo-status.md"
+}
+EOF
 
 exit 0
