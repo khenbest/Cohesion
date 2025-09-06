@@ -206,9 +206,14 @@ Use the CLI tool or state utility directly:
 
 ```bash
 # Using CLI
-./cohesion discover    # Set to DISCOVER
-./cohesion unleash     # Set to UNLEASH
-./cohesion optimize    # Set to OPTIMIZE
+./cohesion reset       # Return to DISCOVER
+./cohesion duo-status  # Check detailed state
+./cohesion safety-check # Verify installation
+
+# State transitions via keywords in conversation:
+# "approved" → UNLEASH state
+# "unclear" → OPTIMIZE state
+# "reset" → DISCOVER state
 
 # Using state utility
 .claude/utils/state.sh set DISCOVER "Manual reset"

@@ -151,7 +151,7 @@ cohesion duo-status
 cohesion status
 
 # Return to DISCOVER
-cohesion discover
+cohesion reset
 ```
 
 ## Part 4: Advanced Workflows

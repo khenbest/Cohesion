@@ -393,9 +393,9 @@ rm -rf .cohesion  # If using custom state dir
 # Rename settings to disable hooks
 mv .claude/settings.json .claude/settings.json.disabled
 
-# Or set to UNLEASH permanently
-cohesion unleash
-echo "PERMANENT_UNLEASH=true" >> .claude/state/session.json
+# Or check current state
+cohesion duo-status
+# Note: Permanent UNLEASH mode is not recommended for safety
 ```
 
 ## Troubleshooting

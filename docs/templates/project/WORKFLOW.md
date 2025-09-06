@@ -199,8 +199,8 @@ echo "Build: Xs, Memory: YMB" >> docs/metrics.log
 # Reset to DISCOVER
 cohesion reset
 
-# Force state change
-cohesion unleash
+# Check current DUO state
+cohesion duo-status
 
 # Check state file
 cat .claude/state/session.json

@@ -10,8 +10,8 @@
 # Check status
 cohesion status
 
-# Enter flow state
-cohesion unleash
+# Check detailed state
+cohesion duo-status
 ```
 
 ## 🔧 Development Commands
@@ -19,10 +19,15 @@ cohesion unleash
 ### State Management
 ```bash
 cohesion status          # Show current state
-cohesion discover        # Enter DISCOVER state
-cohesion unleash         # Enter UNLEASH state  
-cohesion optimize        # Enter OPTIMIZE state
-cohesion reset          # Reset to fresh DISCOVER
+cohesion duo-status      # Detailed state information
+cohesion reset          # Reset to DISCOVER state
+cohesion safety-check    # Verify installation
+cohesion protection-status # Check security status
+
+# State transitions via keywords:
+# Say "approved" → UNLEASH state
+# Say "unclear" → OPTIMIZE state  
+# Say "reset" → DISCOVER state
 ```
 
 ### Sprint Management
@@ -215,8 +220,8 @@ cohesion status        # Check state
 cat docs/CONTEXT.md    # Review context
 npm test              # Verify tests
 
-# During work
-cohesion unleash         # When plan approved
+# During work  
+# Say "approved" after Claude presents plan
 npm test -- --watch   # Continuous testing
 
 # End of day

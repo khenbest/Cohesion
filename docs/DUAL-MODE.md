@@ -15,7 +15,7 @@ Perfect for trying Cohesion in a single project without affecting your system.
 
 - **Installs to**: `./.claude/` in your project
 - **Affects**: Only the current project
-- **Commands**: `./cohesion status`, `./cohesion unleash`, `./cohesion discover`, etc.
+- **Commands**: `./cohesion status`, `./cohesion duo-status`, `./cohesion reset`, etc.
 - **Best for**: First-time users, testing, isolated projects
 
 ### 🌍 Global Mode (System-Wide)
@@ -32,7 +32,7 @@ Once you love Cohesion, upgrade to use it everywhere automatically.
 
 - **Installs to**: `~/.cohesion/` and `~/.claude/`
 - **Affects**: All projects automatically
-- **Commands**: `cohesion status`, `cohesion unleash` (from anywhere)
+- **Commands**: `cohesion status`, `cohesion duo-status`, `cohesion reset` (from anywhere)
 - **Best for**: Regular users, multiple projects, teams
 
 ## Progressive Trust Journey
@@ -110,9 +110,15 @@ cohesion clean          # Remove old project states
 ### State Management (Works in Both Modes)
 ```bash
 cohesion status         # Current state
-cohesion unleash        # Enter UNLEASH state
-cohesion discover       # Enter DISCOVER state
-cohesion optimize       # Enter OPTIMIZE state
+cohesion status         # Check current state
+cohesion duo-status     # Detailed state information
+cohesion reset          # Reset to DISCOVER state
+cohesion safety-check   # Verify installation
+
+# State transitions via keywords:
+# "approved" → UNLEASH state
+# "unclear" → OPTIMIZE state
+# "reset" → DISCOVER state
 cohesion reset          # Fresh start
 ```
 
