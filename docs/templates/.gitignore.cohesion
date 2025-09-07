@@ -1,0 +1,9 @@
+### Cohesion (.claude) ###
+# Cohesion runtime state & logs should not be committed
+.claude/state/
+.claude/logs/
+# Allow hooks & utils to be committed (they’re part of your setup)
+!.claude/hooks/
+!.claude/utils/
+# Optional: if you keep local-only overrides
+.claude/settings.local.json

@@ -1,0 +1,58 @@
+{
+  "description": "Cohesion UNLEASH Mode - Full Autonomy Settings",
+  "version": "2.0.0",
+  
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "_comment": "acceptEdits = autonomous execution without prompts",
+    
+    "allow": [
+      "Read(./**)",
+      "Edit(./**)",
+      "MultiEdit(./**)",
+      "NotebookEdit(./**)",
+      "Write(./**)",
+      "Bash(*)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "TodoWrite",
+      "Task",
+      "WebFetch",
+      "WebSearch"
+    ],
+    
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/credentials/**)",
+      "Read(**/*password*)",
+      "Read(**/*secret*)",
+      "Read(**/*token*)",
+      "Edit(./.git/**)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(chmod 777 /)",
+      "Bash(sudo rm -rf *)",
+      "Bash(:(){:|:&};:)"
+    ],
+    
+    "additionalDirectories": []
+  },
+  
+  "hooks": {
+    "sessionStart": ".claude/hooks/session-start.sh",
+    "preToolUse": ".claude/hooks/pre-tool-use.sh",
+    "userPrompt": ".claude/hooks/user-prompt.sh",
+    "sessionEnd": ".claude/hooks/session-end.sh"
+  },
+  
+  "customInstructions": {
+    "claudeMdPath": "CLAUDE.md",
+    "autoLoad": true
+  },
+  
+  "telemetry": {
+    "enabled": false
+  }
+}

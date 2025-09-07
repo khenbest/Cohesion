@@ -1,0 +1,45 @@
+{
+  "description": "Cohesion OPTIMIZE Mode - Collaborative Settings",
+  "version": "2.0.0",
+  
+  "permissions": {
+    "defaultMode": "ask",
+    "_comment": "ask = prompt for each action (collaborative mode)",
+    
+    "allow": [
+      "Read(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "TodoWrite",
+      "Task",
+      "WebSearch"
+    ],
+    
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/credentials/**)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)"
+    ],
+    
+    "additionalDirectories": []
+  },
+  
+  "hooks": {
+    "sessionStart": ".claude/hooks/session-start.sh",
+    "preToolUse": ".claude/hooks/pre-tool-use.sh",
+    "userPrompt": ".claude/hooks/user-prompt.sh",
+    "sessionEnd": ".claude/hooks/session-end.sh"
+  },
+  
+  "customInstructions": {
+    "claudeMdPath": "CLAUDE.md",
+    "autoLoad": true
+  },
+  
+  "telemetry": {
+    "enabled": false
+  }
+}

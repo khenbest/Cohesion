@@ -1,0 +1,68 @@
+# Cohesion runtime state (when testing in this repo)
+.claude/state/*
+.claude/settings.local.json
+.claude/approvals.txt
+.claude/logs/*
+
+# Hook tracking files
+.claude/state/.good_patterns
+.claude/state/.patterns
+
+# Settings backups
+.claude/settings.backup.json
+.claude/*.backup.json
+
+# Session/runtime files
+.claude/state/.last_transition
+.claude/state/.mode
+.claude/state/UNLEASHED
+.claude/state/OPTIMIZE
+
+# Backup files
+*.backup
+*.bak
+*.bak.*
+*.cohesion-backup
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test artifacts
+test-results/
+test_results/
+coverage/
+*.test
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Personal/local files
+personal/
+local/
+z/
+
+# Build artifacts (future-proof)
+dist/
+build/
+target/
+
+# Dependencies (if any added later)
+node_modules/
+vendor/
+

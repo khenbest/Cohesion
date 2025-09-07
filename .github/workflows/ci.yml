@@ -1,0 +1,36 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew update
+            brew install jq shellcheck bats-core
+          else
+            sudo apt-get update -y
+            sudo apt-get install -y jq shellcheck bats
+          fi
+      - name: Lint shell
+        run: |
+          set -e
+          files=$(git ls-files '*.sh' || true)
+          if [[ -n "$files" ]]; then
+            shellcheck $files
+          fi
+      - name: Unit tests (bats)
+        run: |
+          if [[ -d tests/bats ]]; then
+            bats -r tests/bats
+          else
+            echo "No bats tests found; skipping."
+          fi

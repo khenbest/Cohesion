@@ -1,0 +1,46 @@
+{
+  "description": "Cohesion DUO Protocol Settings - Project Level",
+  "version": "2.0.0",
+  
+  "permissions": {
+    "defaultMode": "ask",
+    "_comment": "DISCOVER mode - hooks will block writes regardless of this setting",
+    
+    "allow": [
+      "Read(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "TodoWrite",
+      "Task",
+      "WebSearch"
+    ],
+    
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/credentials/**)",
+      "Edit(./.git/**)",
+      "Bash(rm -rf /)",
+      "Bash(chmod 777 *)"
+    ],
+    
+    "additionalDirectories": []
+  },
+  
+  "hooks": {
+    "sessionStart": ".claude/hooks/session-start.sh",
+    "preToolUse": ".claude/hooks/pre-tool-use.sh", 
+    "userPrompt": ".claude/hooks/user-prompt.sh",
+    "sessionEnd": ".claude/hooks/session-end.sh"
+  },
+  
+  "customInstructions": {
+    "claudeMdPath": "CLAUDE.md",
+    "autoLoad": true
+  },
+  
+  "telemetry": {
+    "enabled": false
+  }
+}
