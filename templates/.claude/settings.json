@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "*",
+      "Bash(.claude/commands/*:*)",
+      "Bash(.claude/commands/startup:*)",
+      "Bash(.claude/commands/status:*)",
+      "Bash(.claude/commands/save:*)",
+      "Bash(.claude/commands/discover:*)",
+      "Bash(.claude/commands/optimize:*)",
+      "Bash(.claude/commands/unleash:*)",
+      "Bash(.claude/commands/approve:*)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Read(./secrets/**)",
+      "Read(**/*password*)",
+      "Read(**/*token*)",
+      "Read(**/*key*)",
+      "Bash(rm -rf /)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-tool-use.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

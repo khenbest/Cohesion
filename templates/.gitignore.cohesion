@@ -1,0 +1,50 @@
+# Cohesion Framework - Template Gitignore
+# Copy this to your project's .gitignore
+
+# Cohesion state files - never commit these
+.claude/state/
+.claude/logs/
+.claude/*.backup.json
+.claude/settings.local.json
+
+# Cohesion runtime files
+.claude/state/*
+.claude/logs/*
+.claude/approvals.txt
+.claude/hooks/protected.conf
+
+# Session/runtime files  
+.claude/state/.last_transition
+.claude/state/.mode
+.claude/state/UNLEASHED
+.claude/state/OPTIMIZE
+.claude/state/DISCOVER
+.claude/state/.approved_edits
+.claude/state/.session_context
+.claude/state/.last_save
+.claude/state/sessions/
+
+# Auto-generated documentation (optional - remove if you want to commit these)
+docs/DETAILED_EXECUTION_PLAN.md
+docs/04-progress/daily-*.md
+docs/04-progress/weekly-*.md
+
+# macOS system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor temporary files
+*.swp
+*.swo
+*~
+.vscode/settings.json
+.idea/
+*.tmp
+
+# Log files
+*.log

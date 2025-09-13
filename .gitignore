@@ -1,0 +1,100 @@
+### Cohesion (.claude) - NEVER GIT PUSH ###
+# Only ignore .claude in the root (when testing Cohesion on itself)
+/.claude/state/
+/.claude/logs/
+/.claude/
+
+# Cohesion runtime state (when testing in this repo)
+/.claude/state/*
+/.claude/settings.local.json
+/.claude/approvals.txt
+/.claude/logs/*
+/.claude/hooks/protected.conf
+
+# Hook tracking files
+/.claude/state/.good_patterns
+/.claude/state/.patterns
+
+# Settings backups
+/.claude/settings.backup.json
+/.claude/*.backup.json
+
+# Cohesion settings (stored in subdirectory)
+/.claude/cohesion/settings.local.json
+/.claude/cohesion/settings.backup.json
+/.claude/cohesion/*.bak
+
+# Session/runtime files
+/.claude/state/.last_transition
+/.claude/state/.mode
+/.claude/state/UNLEASHED
+/.claude/state/OPTIMIZE
+/.claude/state/.last_save
+/.claude/state/sessions/
+
+# Backup files
+*.backup
+*.bak
+*.bak*
+*.cohesion-backup
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test artifacts
+test-results/
+test_results/
+coverage/
+*.test
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Environment files (but not docs.env which is project config)
+.env
+.env.local
+.env.*.local
+# Cohesion's own docs.env (when testing in this repo)
+/.claude/docs.env
+
+# Personal/local files
+personal/
+local/
+z/
+
+# Template docs that get created when running cohesion init on this repo
+# This allows a custom CLAUDE.md for framework development
+CLAUDE.md
+docs/STATE.md
+docs/WORKFLOW.md
+docs/DETAILED_EXECUTION_PLAN.md
+docs/01-planning/project-plan-template.md
+docs/02-architecture/performance-optimization-template.md
+docs/02-architecture/system-architecture-template.md
+docs/03-implementation/implementation-guide.md
+docs/03-implementation/services/service-template.md
+docs/04-progress/milestone-template.md
+docs/04-progress/daily-*.md
+docs/05-decisions/adr-template.md
+docs/05-decisions/adr-*.md
+
+# Build artifacts (future-proof)
+dist/
+build/
+target/
+
+# Dependencies (if any added later)
+node_modules/
+vendor/
+release-v1.0.0.sh

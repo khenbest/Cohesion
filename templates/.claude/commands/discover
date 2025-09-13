@@ -1,0 +1,29 @@
+#!/bin/bash
+# Cohesion Bulletproof - DISCOVER mode command
+echo "🔍 DISCOVER MODE ACTIVATED"
+echo "Switching to analysis mode for careful planning and investigation."
+
+# Update state
+STATE_DIR=".claude/state"
+
+# Remove any existing mode files
+rm -f "$STATE_DIR"/DISCOVER "$STATE_DIR"/OPTIMIZE "$STATE_DIR"/UNLEASHED
+
+# Create DISCOVER mode file
+touch "$STATE_DIR/DISCOVER"
+
+# Clear approved edits for safety
+> "$STATE_DIR/.approved_edits"
+
+# Show mode description
+echo ""
+echo "In DISCOVER mode you can:"
+echo "• Read and analyze code"
+echo "• Search for patterns"
+echo "• Plan your approach"
+echo "Think-First Protocol Active:"
+echo "• Every minute thinking saves 10 minutes debugging"
+echo "• Test assumptions before implementation"
+echo "• Identify edge cases upfront"
+echo "Canon Reminder: Keep refining until your plan is bulletproof - excellence earns /unleash!"
+echo ""

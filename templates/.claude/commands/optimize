@@ -1,0 +1,26 @@
+#!/bin/bash
+# Cohesion Bulletproof - OPTIMIZE mode command
+
+STATE_DIR=".claude/state"
+
+# Remove any existing mode files
+rm -f "$STATE_DIR"/DISCOVER "$STATE_DIR"/OPTIMIZE "$STATE_DIR"/UNLEASHED
+
+# Create OPTIMIZE mode file
+touch "$STATE_DIR/OPTIMIZE"
+
+# Clear approved edits for new mode
+> "$STATE_DIR/.approved_edits"
+
+# Show confirmation
+echo "✨ OPTIMIZE MODE ACTIVATED"
+echo ""
+echo "Collaborative development mode enabled."
+echo "• File edits require approval with /approve <file>"
+echo "• Perfect for sensitive code changes"
+echo "• Use /unleash for full autonomy"
+echo ""
+echo "Approval-Criteria Protocol Active:"
+echo "• Each file needs explicit permission - boundaries create trust"
+echo "• Demonstrate Always-Works: verify everything before claiming success"
+echo "• Excellence in collaboration earns autonomy - prove you're ready for /unleash"

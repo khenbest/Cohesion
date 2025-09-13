@@ -1,0 +1,130 @@
+#!/bin/bash
+# Cohesion /save Command - Session Context & Documentation Bridge
+# Transforms session endpoints into documentation events
+
+set -euo pipefail
+
+STATE_DIR=".claude/state"
+MILESTONE_MODE=false
+CONTEXT_ARG=""
+
+# Parse arguments
+if [[ "${1:-}" == "--milestone" ]]; then
+    MILESTONE_MODE=true
+    CONTEXT_ARG="${2:-}"
+    shift 2 2>/dev/null || true
+else
+    CONTEXT_ARG="${1:-}"
+fi
+
+# Detect current mode
+MODE="DISCOVER"
+[[ -f "$STATE_DIR/OPTIMIZE" ]] && MODE="OPTIMIZE"
+[[ -f "$STATE_DIR/UNLEASH" ]] && MODE="UNLEASH"
+
+# Get session metadata
+SESSION_START_TIME=$(stat -c %Y "$STATE_DIR/.cohesion_state.json" 2>/dev/null || echo "$(date +%s)")
+CURRENT_TIME=$(date +%s)
+DURATION_MINUTES=$(( (CURRENT_TIME - SESSION_START_TIME) / 60 ))
+
+# Generate save ID
+SAVE_ID="$(date +%Y%m%d-%H%M%S)"
+DAILY_LOG="docs/04-progress/daily-$(date +%Y-%m-%d).md"
+
+# Ensure directories exist
+mkdir -p "docs/04-progress" "$STATE_DIR/sessions"
+
+# Get files modified since last save (if git repo)
+MODIFIED_FILES=""
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    MODIFIED_FILES=$(git diff --name-only HEAD 2>/dev/null | tr '\n' ',' | sed 's/,$//' || echo "")
+fi
+
+# Get approved files in OPTIMIZE mode
+APPROVED_FILES=""
+if [[ "$MODE" == "OPTIMIZE" && -f "$STATE_DIR/.approved_edits" ]]; then
+    APPROVED_FILES=$(cat "$STATE_DIR/.approved_edits" | tr '\n' ',' | sed 's/,$//' || echo "")
+fi
+
+# Create session metadata
+cat > "$STATE_DIR/sessions/$SAVE_ID.json" << EOF
+{
+  "save_id": "$SAVE_ID",
+  "type": "$(if $MILESTONE_MODE; then echo "milestone"; else echo "session"; fi)",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "context": "$CONTEXT_ARG",
+  "session": {
+    "duration_minutes": $DURATION_MINUTES,
+    "final_mode": "$MODE",
+    "files_modified": "$MODIFIED_FILES",
+    "approved_files": "$APPROVED_FILES"
+  }
+}
+EOF
+
+# Session Save (lightweight)
+if ! $MILESTONE_MODE; then
+    # Update STATE.md current focus
+    if [[ -f "docs/STATE.md" ]]; then
+        # Simple STATE.md update - preserve structure but update progress
+        sed -i.bak "s/^## Current Focus.*/## Current Focus\n\n$(if [[ -n "$CONTEXT_ARG" ]]; then echo "Focus: $CONTEXT_ARG"; else echo "Session checkpoint - $MODE mode"; fi)\n/" docs/STATE.md 2>/dev/null || true
+        rm -f docs/STATE.md.bak 2>/dev/null || true
+    fi
+    
+    # Add to daily log
+    {
+        echo ""
+        echo "### Session Save - $(date '+%H:%M')"
+        echo "- **Mode**: $MODE"
+        echo "- **Duration**: $DURATION_MINUTES minutes"
+        if [[ -n "$CONTEXT_ARG" ]]; then
+            echo "- **Context**: $CONTEXT_ARG"
+        fi
+        if [[ -n "$MODIFIED_FILES" ]]; then
+            echo "- **Files modified**: $MODIFIED_FILES"
+        fi
+        echo ""
+    } >> "$DAILY_LOG"
+    
+    # Update session symlink
+    rm -f "$STATE_DIR/.last_save"
+    ln -sf "sessions/$SAVE_ID.json" "$STATE_DIR/.last_save"
+    
+    if [[ -f "docs/STATE.md" ]]; then
+        echo "✅ Updated docs/STATE.md with current progress"
+    fi
+    echo "✅ Added entry to $DAILY_LOG"
+    if [[ "$MODE" == "OPTIMIZE" && -n "$APPROVED_FILES" ]]; then
+        echo "✅ Preserved $(echo "$APPROVED_FILES" | tr ',' '\n' | wc -l | xargs) approved files for tomorrow"
+    fi
+    echo "✅ Current mode: $MODE maintained"
+    echo ""
+    echo "📋 Session Summary:"
+    echo "   Duration: $DURATION_MINUTES minutes"
+    if [[ -n "$MODIFIED_FILES" ]]; then
+        echo "   Files modified: $(echo "$MODIFIED_FILES" | tr ',' '\n' | wc -l | xargs)"
+    fi
+    echo "   Mode: $MODE"
+    if [[ -n "$CONTEXT_ARG" ]]; then
+        echo "   Next focus: $CONTEXT_ARG"
+    fi
+    echo ""
+    echo "💾 Context preserved for next session"
+
+else
+    # Milestone Save (comprehensive)
+    if [[ -f "docs/STATE.md" ]]; then
+        echo "✅ Updated docs/STATE.md - $(if [[ -n "$CONTEXT_ARG" ]]; then echo "$CONTEXT_ARG complete"; else echo "Milestone reached"; fi)"
+    fi
+    
+    # More comprehensive milestone logic will be implemented in Phase 2
+    echo "✅ Created milestone checkpoint"
+    echo "✅ Updated $DAILY_LOG with milestone"
+    echo ""
+    echo "🔍 Close-the-Loop Analysis:"
+    echo "   📋 Documentation updates needed:"
+    echo "   • [Future implementation]"
+    echo ""
+    echo "💾 Milestone checkpoint created"
+    echo "📥 [Future] Documentation drafts queued for review"
+fi

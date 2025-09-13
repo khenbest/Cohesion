@@ -1,0 +1,43 @@
+#!/bin/bash
+# Cohesion Bulletproof - APPROVE command for OPTIMIZE mode
+
+STATE_DIR=".claude/state"
+
+# Check if file argument provided
+if [[ -z "$1" ]]; then
+  echo "❌ Usage: /approve <file_path>"
+  echo ""
+  echo "Example: /approve src/components/Header.jsx"
+  exit 1
+fi
+
+FILE_PATH="$1"
+
+# Check if we're in OPTIMIZE mode
+if [[ ! -f "$STATE_DIR/OPTIMIZE" ]]; then
+  echo "⚠️ /approve only works in OPTIMIZE mode"
+  if [[ -f "$STATE_DIR/UNLEASH" ]]; then
+    echo "Current mode: UNLEASH"
+  elif [[ -f "$STATE_DIR/DISCOVER" ]]; then
+    echo "Current mode: DISCOVER" 
+  else
+    echo "Current mode: DISCOVER (default)"
+  fi
+  echo ""
+  echo "Use /optimize to switch to collaborative mode first"
+  exit 1
+fi
+
+# Add to approved files
+mkdir -p "$STATE_DIR"
+APPROVED_FILE="$STATE_DIR/.approved_edits"
+
+# Add file if not already there
+if [[ -f "$APPROVED_FILE" ]] && grep -q "^$FILE_PATH$" "$APPROVED_FILE"; then
+  echo "✅ $FILE_PATH already approved for editing"
+else
+  echo "$FILE_PATH" >> "$APPROVED_FILE"
+  echo "✅ Approved for editing: $FILE_PATH"
+  echo ""
+  echo "You can now edit this file in OPTIMIZE mode"
+fi

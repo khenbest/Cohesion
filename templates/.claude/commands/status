@@ -1,0 +1,71 @@
+#!/bin/bash
+# Cohesion Bulletproof - STATUS command
+set -euo pipefail
+
+# Use relative paths for portability
+STATE_DIR=".claude/state"
+STATE_FILE="$STATE_DIR/.cohesion_state.json"
+
+# Self-healing check - ensure directories exist
+[[ ! -d "$STATE_DIR" ]] && mkdir -p "$STATE_DIR"
+
+# Ensure at least one mode file exists
+if [[ ! -f "$STATE_DIR/DISCOVER" && ! -f "$STATE_DIR/OPTIMIZE" && ! -f "$STATE_DIR/UNLEASH" ]]; then
+  echo "DISCOVER mode initialized" > "$STATE_DIR/DISCOVER"
+fi
+
+echo "🚀 Cohesion Bulletproof Status Report"
+echo "═══════════════════════════════════════════════════════"
+
+# Detect mode from files (bulletproof way)
+if [[ -f "$STATE_DIR/UNLEASH" ]]; then
+  MODE="UNLEASH"
+elif [[ -f "$STATE_DIR/OPTIMIZE" ]]; then
+  MODE="OPTIMIZE"
+elif [[ -f "$STATE_DIR/DISCOVER" ]]; then
+  MODE="DISCOVER"
+else
+  MODE="DISCOVER (default)"
+fi
+
+# Get stats from JSON if available
+if [[ -f "$STATE_FILE" ]]; then
+  SESSION_ID=$(grep -o '"session_id": "[^"]*"' "$STATE_FILE" 2>/dev/null | sed 's/"session_id": "//' | sed 's/"//' || echo "unknown")
+  TOOL_COUNT=$(wc -l < "$STATE_DIR/.tool_history" 2>/dev/null || echo "0")
+  HEALTH=$(grep -o '"health_status": "[^"]*"' "$STATE_FILE" 2>/dev/null | sed 's/"health_status": "//' | sed 's/"//' || echo "unknown")
+else
+  SESSION_ID="unknown"
+  TOOL_COUNT="0"
+  HEALTH="unknown"
+fi
+
+echo "📊 Current Mode: $MODE"
+echo "🔧 Architecture: PreToolUse-Everything Engine"
+echo "📝 Session ID: $SESSION_ID"
+echo "🛠️ Tools Used: $TOOL_COUNT"
+echo "💚 Health: $HEALTH"
+echo ""
+echo "Available Commands:"
+echo "  /discover - Switch to analysis mode"
+echo "  /optimize - Switch to collaborative mode"  
+echo "  /unleash  - Switch to autonomous mode"
+echo "  /status   - Show this status"
+echo ""
+echo "Mode Capabilities:"
+case "$MODE" in
+  "DISCOVER")
+    echo "  • Read-only access"
+    echo "  • Code analysis and planning"
+    echo "  • Safe exploration"
+    ;;
+  "OPTIMIZE")
+    echo "  • Collaborative editing"
+    echo "  • Approval required per file"
+    echo "  • Use /approve <file> to enable edits"
+    ;;
+  "UNLEASH")
+    echo "  • Full autonomy"
+    echo "  • Unrestricted operations"
+    echo "  • Maximum velocity"
+    ;;
+esac

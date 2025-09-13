@@ -1,0 +1,47 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew update
+            brew install jq shellcheck bats-core
+          else
+            sudo apt-get update -y
+            sudo apt-get install -y jq shellcheck bats
+          fi
+      - name: Shell Compliance Test
+        run: |
+          # Run comprehensive shell compliance test
+          ./z/dev-tests/shell-compliance-test.sh --verify-only --non-interactive --verbose
+      - name: Test installation
+        run: |
+          # Test non-interactive dry-run installation
+          ./install.sh --dry-run --non-interactive
+          echo "✓ Dry-run installation successful"
+          
+          # Test that all required files exist
+          [[ -f cohesion ]] || { echo "❌ cohesion script missing"; exit 1; }
+          [[ -f install.sh ]] || { echo "❌ install.sh missing"; exit 1; }
+          [[ -d .claude/hooks ]] || { echo "❌ .claude/hooks directory missing"; exit 1; }
+          [[ -d .claude/utils ]] || { echo "❌ .claude/utils directory missing"; exit 1; }
+          [[ -d scripts ]] || { echo "❌ scripts directory missing"; exit 1; }
+          echo "✓ All required files present"
+
+      - name: Unit tests (bats)
+        run: |
+          if [[ -d tests/bats ]]; then
+            bats -r tests/bats
+          else
+            echo "No bats tests found; skipping."
+          fi

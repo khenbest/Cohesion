@@ -1,0 +1,307 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'cohesion-docs/**'
+      - '.github/workflows/deploy-docs.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'cohesion-docs/**'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: |
+          npm install -g @vuepress/cli vuepress
+          
+      - name: Build documentation site
+        run: |
+          # Create a temporary build directory
+          mkdir -p build
+          
+          # Copy docs content
+          cp -r cohesion-docs/* build/
+          
+          # Create a simple index.html for the docs
+          cat > build/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Cohesion Documentation</title>
+              <style>
+                  body { 
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      max-width: 1200px; 
+                      margin: 0 auto; 
+                      padding: 20px;
+                      line-height: 1.6;
+                  }
+                  .header {
+                      text-align: center;
+                      border-bottom: 2px solid #eee;
+                      padding-bottom: 20px;
+                      margin-bottom: 30px;
+                  }
+                  .nav-grid {
+                      display: grid;
+                      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                      gap: 20px;
+                      margin: 30px 0;
+                  }
+                  .nav-card {
+                      border: 1px solid #ddd;
+                      border-radius: 8px;
+                      padding: 20px;
+                      background: #f9f9f9;
+                      text-decoration: none;
+                      color: inherit;
+                      transition: all 0.2s;
+                  }
+                  .nav-card:hover {
+                      background: #f0f0f0;
+                      transform: translateY(-2px);
+                      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                  }
+                  .nav-card h3 {
+                      margin-top: 0;
+                      color: #0066cc;
+                  }
+                  .methodologies-grid {
+                      display: grid;
+                      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                      gap: 15px;
+                      margin-top: 20px;
+                  }
+                  .method-card {
+                      border: 1px solid #e0e0e0;
+                      border-radius: 6px;
+                      padding: 15px;
+                      background: white;
+                  }
+                  .method-card a {
+                      text-decoration: none;
+                      color: #0066cc;
+                      font-weight: 500;
+                  }
+                  code { 
+                      background: #f0f0f0; 
+                      padding: 2px 6px; 
+                      border-radius: 3px; 
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="header">
+                  <h1>🎯 Cohesion Documentation</h1>
+                  <p>AI-powered development framework with built-in protocols for safe, effective collaboration</p>
+              </div>
+
+              <div class="nav-grid">
+                  <a href="QUICKSTART.html" class="nav-card">
+                      <h3>🚀 Quick Start</h3>
+                      <p>Get up and running with Cohesion in minutes. Essential setup and first steps.</p>
+                  </a>
+                  
+                  <a href="INSTALLATION.html" class="nav-card">
+                      <h3>💾 Installation</h3>
+                      <p>Complete installation guide with system requirements and troubleshooting.</p>
+                  </a>
+                  
+                  <a href="COHESION_ARCHITECTURE.html" class="nav-card">
+                      <h3>🏗️ Architecture</h3>
+                      <p>Deep dive into Cohesion's DUO protocol and system architecture.</p>
+                  </a>
+                  
+                  <a href="SESSION-LIFECYCLE.html" class="nav-card">
+                      <h3>🔄 Session Lifecycle</h3>
+                      <p>Understanding how Cohesion manages AI sessions and state transitions.</p>
+                  </a>
+                  
+                  <a href="CONFIGURATION_HIERARCHY.html" class="nav-card">
+                      <h3>⚙️ Configuration</h3>
+                      <p>Master Cohesion's configuration system and customization options.</p>
+                  </a>
+                  
+                  <a href="TROUBLESHOOTING.html" class="nav-card">
+                      <h3>🔧 Troubleshooting</h3>
+                      <p>Common issues and solutions for smooth Cohesion operation.</p>
+                  </a>
+              </div>
+
+              <h2>📜 Canon Methodologies</h2>
+              <p>The six core principles that guide effective AI-human collaboration:</p>
+              
+              <div class="methodologies-grid">
+                  <div class="method-card">
+                      <h4>🧠 <a href="cohesion-methodologies/01-think-before-build.html">Think-First</a></h4>
+                      <p>Every minute spent thinking saves 10 minutes debugging</p>
+                  </div>
+                  
+                  <div class="method-card">
+                      <h4>✅ <a href="cohesion-methodologies/02-works-everywhere.html">Always-Works</a></h4>
+                      <p>If you haven't tested it, it doesn't work</p>
+                  </div>
+                  
+                  <div class="method-card">
+                      <h4>🔍 <a href="cohesion-methodologies/03-reality-check.html">Reality-Check</a></h4>
+                      <p>When expected ≠ actual, reality is teaching you something</p>
+                  </div>
+                  
+                  <div class="method-card">
+                      <h4>🛡️ <a href="cohesion-methodologies/04-approval-boundaries.html">Approval-Criteria</a></h4>
+                      <p>Autonomy without boundaries is chaos</p>
+                  </div>
+                  
+                  <div class="method-card">
+                      <h4>🏷️ <a href="cohesion-methodologies/05-naming-that-works.html">Clear-Naming</a></h4>
+                      <p>Clear names prevent confusion</p>
+                  </div>
+                  
+                  <div class="method-card">
+                      <h4>🔄 <a href="cohesion-methodologies/06-close-the-loop.html">Close-the-Loop</a></h4>
+                      <p>Major changes require systematic impact analysis</p>
+                  </div>
+              </div>
+
+              <div style="margin-top: 50px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+                  <p>
+                      <strong>Need help?</strong> Visit our 
+                      <a href="https://github.com/khenbest/Cohesion">GitHub repository</a> 
+                      or check the <a href="TROUBLESHOOTING.html">troubleshooting guide</a>.
+                  </p>
+              </div>
+          </body>
+          </html>
+          EOF
+          
+          # Convert markdown files to HTML using a simple script
+          for md_file in $(find build -name "*.md"); do
+              html_file="${md_file%.md}.html"
+              echo "Converting $md_file to $html_file"
+              
+              # Create basic HTML wrapper for markdown content
+              cat > "$html_file" << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Cohesion Documentation</title>
+              <style>
+                  body { 
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      max-width: 800px; 
+                      margin: 0 auto; 
+                      padding: 20px;
+                      line-height: 1.6;
+                  }
+                  .nav-header { 
+                      text-align: center; 
+                      border-bottom: 1px solid #eee; 
+                      padding-bottom: 15px; 
+                      margin-bottom: 30px;
+                  }
+                  .nav-header a { 
+                      text-decoration: none; 
+                      color: #0066cc; 
+                      font-weight: 500;
+                  }
+                  pre { 
+                      background: #f5f5f5; 
+                      padding: 15px; 
+                      border-radius: 5px; 
+                      overflow-x: auto; 
+                  }
+                  code { 
+                      background: #f0f0f0; 
+                      padding: 2px 6px; 
+                      border-radius: 3px; 
+                  }
+                  blockquote { 
+                      border-left: 4px solid #0066cc; 
+                      margin-left: 0; 
+                      padding-left: 20px; 
+                      color: #666;
+                  }
+                  table { 
+                      border-collapse: collapse; 
+                      width: 100%; 
+                  }
+                  th, td { 
+                      border: 1px solid #ddd; 
+                      padding: 8px; 
+                      text-align: left; 
+                  }
+                  th { 
+                      background: #f0f0f0; 
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="nav-header">
+                  <a href="index.html">← Back to Documentation Home</a>
+              </div>
+              <div class="content">
+          HTMLEOF
+              
+              # Simple markdown to HTML conversion (basic)
+              sed -e 's/^# \(.*\)/<h1>\1<\/h1>/' \
+                  -e 's/^## \(.*\)/<h2>\1<\/h2>/' \
+                  -e 's/^### \(.*\)/<h3>\1<\/h3>/' \
+                  -e 's/^#### \(.*\)/<h4>\1<\/h4>/' \
+                  -e 's/^\* \(.*\)/<li>\1<\/li>/' \
+                  -e 's/^- \(.*\)/<li>\1<\/li>/' \
+                  -e 's/\*\*\([^*]*\)\*\*/<strong>\1<\/strong>/g' \
+                  -e 's/\*\([^*]*\)\*/<em>\1<\/em>/g' \
+                  -e 's/`\([^`]*\)`/<code>\1<\/code>/g' \
+                  "$md_file" >> "$html_file"
+              
+              echo "</div></body></html>" >> "$html_file"
+          done
+          
+          # Remove markdown files to keep only HTML
+          find build -name "*.md" -delete
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./build
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

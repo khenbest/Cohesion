@@ -1,0 +1,213 @@
+#!/bin/bash
+# Cohesion Startup Command - Ensures proper initialization
+# Consolidates all startup logic into user-controllable command
+set -euo pipefail
+
+# Load utilities
+STATE_DIR=".claude/state"
+CLAUDE_DIR=".claude"
+
+# Source utils if available (fallback to inline if not)
+if [[ -f "$CLAUDE_DIR/utils/cohesion-utils.sh" ]]; then
+  . "$CLAUDE_DIR/utils/cohesion-utils.sh"
+fi
+
+# Ensure state directory exists
+mkdir -p "$STATE_DIR"
+
+# ═══════════════════════════════════════════════════════════════
+# DETECT STARTUP TYPE (First-time vs Continual)
+# ═══════════════════════════════════════════════════════════════
+session_count_file="$STATE_DIR/.session_count"
+first_time=false
+
+if [[ ! -f "$session_count_file" ]]; then
+  echo "0" > "$session_count_file"
+  first_time=true
+fi
+
+session_count=$(cat "$session_count_file")
+new_count=$((session_count + 1))
+echo "$new_count" > "$session_count_file"
+
+# ═══════════════════════════════════════════════════════════════
+# ENSURE COHESION HEALTH (Self-healing checks)
+# ═══════════════════════════════════════════════════════════════
+ensure_cohesion_ready() {
+  local issues_found=false
+  
+  # Check for mode files
+  if [[ ! -f "$STATE_DIR/DISCOVER" && ! -f "$STATE_DIR/OPTIMIZE" && ! -f "$STATE_DIR/UNLEASH" ]]; then
+    echo "  🔧 Initializing default mode (DISCOVER)..."
+    echo "DISCOVER mode initialized" > "$STATE_DIR/DISCOVER"
+    issues_found=true
+  fi
+  
+  # Check for required directories
+  for dir in "$STATE_DIR" "$STATE_DIR/sessions" "$CLAUDE_DIR/utils" "$CLAUDE_DIR/hooks"; do
+    if [[ ! -d "$dir" ]]; then
+      echo "  🔧 Creating missing directory: $dir"
+      mkdir -p "$dir"
+      issues_found=true
+    fi
+  done
+  
+  # Restore session context if available
+  if command -v restore_session_context >/dev/null 2>&1; then
+    restore_session_context >/dev/null 2>&1 || true
+  fi
+  
+  # Load canon patterns if available
+  if [[ -f "$CLAUDE_DIR/canon-cache.md" ]] && command -v extract_canon_patterns >/dev/null 2>&1; then
+    export CANON_PATTERNS=$(extract_canon_patterns 2>/dev/null || echo "")
+  fi
+  
+  if $issues_found; then
+    echo "  ✅ Self-healing complete"
+    echo ""
+  fi
+}
+
+# ═══════════════════════════════════════════════════════════════
+# GET CURRENT MODE
+# ═══════════════════════════════════════════════════════════════
+get_current_mode() {
+  if [[ -f "$STATE_DIR/UNLEASH" ]]; then
+    echo "UNLEASH"
+  elif [[ -f "$STATE_DIR/OPTIMIZE" ]]; then
+    echo "OPTIMIZE"
+  else
+    echo "DISCOVER"
+  fi
+}
+
+current_mode=$(get_current_mode)
+
+# ═══════════════════════════════════════════════════════════════
+# DISPLAY STARTUP BANNER
+# ═══════════════════════════════════════════════════════════════
+
+# Colors for mode display (use different names to avoid conflicts)
+COLOR_CYAN='\033[0;36m'
+COLOR_JADE='\033[0;32m'
+COLOR_YELLOW='\033[1;33m'
+COLOR_NC='\033[0m' # No Color
+
+echo "════════════════════════════════════════════════════════════════"
+echo "                    🚀 Cohesion System Active                    "
+echo "════════════════════════════════════════════════════════════════"
+echo ""
+
+# Run health checks
+ensure_cohesion_ready
+
+# Display mode with appropriate color
+case "$current_mode" in
+  DISCOVER)
+    printf "  Current Mode: ${COLOR_CYAN}%s${COLOR_NC}\n" "$current_mode"
+    ;;
+  OPTIMIZE)
+    printf "  Current Mode: ${COLOR_JADE}%s${COLOR_NC}\n" "$current_mode"
+    ;;
+  UNLEASH)
+    printf "  Current Mode: ${COLOR_YELLOW}%s${COLOR_NC}\n" "$current_mode"
+    ;;
+  *)
+    echo "  Current Mode: $current_mode"
+    ;;
+esac
+
+echo "  Commands Available:"
+echo "    • /discover - Enter analysis mode"
+echo "    • /optimize - Enter collaboration mode"
+echo "    • /unleash  - Enter autonomous mode"
+echo "    • /status   - View current state"
+echo "    • /save     - Save session context"
+echo "    • /approve  - Approve file edits (OPTIMIZE mode)"
+echo ""
+
+# ═══════════════════════════════════════════════════════════════
+# FIRST-TIME vs CONTINUAL STARTUP
+# ═══════════════════════════════════════════════════════════════
+
+if $first_time; then
+  # FIRST-TIME PROJECT STARTUP
+  echo "  🎯 FIRST SESSION DETECTED"
+  echo ""
+  echo "  Welcome to Cohesion! Here's how to get started:"
+  echo ""
+  echo "  What would you like to do today?"
+  echo "    • Explore/understand the codebase → Stay in DISCOVER"
+  echo "    • Start building/coding immediately → Use /unleash"
+  echo "    • Work with approvals/collaboration → Use /optimize"
+  echo ""
+  echo "  💡 Tip: Start with DISCOVER to understand, then /unleash to build"
+  echo ""
+  echo "  📚 Documentation:"
+  echo "    • Run 'cohesion learn' for interactive tutorial"
+  echo "    • Check docs/ folder for comprehensive guides"
+  echo "    • Use /status to see current state anytime"
+  echo ""
+else
+  # CONTINUAL STARTUP (Returning session)
+  echo "  Session #$new_count - Welcome back!"
+  echo ""
+  
+  # Check for last save context
+  if [[ -f "$STATE_DIR/.last_save" ]]; then
+    last_context=$(jq -r '.context // "No context saved"' "$STATE_DIR/.last_save" 2>/dev/null || echo "No context available")
+    if [[ "$last_context" != "No context"* ]]; then
+      echo "  📌 Last session context:"
+      echo "    $last_context"
+      echo ""
+    fi
+  fi
+  
+  # Show approved files if in OPTIMIZE mode
+  if [[ "$current_mode" == "OPTIMIZE" && -f "$STATE_DIR/.approved_edits" ]]; then
+    approved_count=$(wc -l < "$STATE_DIR/.approved_edits" | tr -d ' ')
+    if [[ $approved_count -gt 0 ]]; then
+      echo "  📝 Approved files from last session ($approved_count):"
+      head -5 "$STATE_DIR/.approved_edits" | sed 's/^/    • /'
+      if [[ $approved_count -gt 5 ]]; then
+        echo "    ... and $((approved_count - 5)) more"
+      fi
+      echo ""
+    fi
+  fi
+  
+  # Check for recent activity
+  daily_log="docs/04-progress/daily-$(date +%Y-%m-%d).md"
+  if [[ -f "$daily_log" ]]; then
+    echo "  📊 Today's activity log: $daily_log"
+  fi
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# INITIALIZATION STATUS
+# ═══════════════════════════════════════════════════════════════
+
+# Mark as initialized
+date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/.initialized"
+
+echo "════════════════════════════════════════════════════════════════"
+echo ""
+echo "✅ Cohesion initialized and ready!"
+echo ""
+
+# Mode-specific tips
+case "$current_mode" in
+  DISCOVER)
+    echo "💡 In DISCOVER mode: Read-only exploration"
+    echo "   Use /unleash when ready to build"
+    ;;
+  OPTIMIZE)
+    echo "💡 In OPTIMIZE mode: Collaborative development"
+    echo "   Use /approve <file> before editing"
+    ;;
+  UNLEASH)
+    echo "💡 In UNLEASH mode: Full autonomy active"
+    echo "   Use /save to checkpoint your progress"
+    ;;
+esac
+echo ""

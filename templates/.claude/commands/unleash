@@ -1,0 +1,27 @@
+#!/bin/bash
+# Cohesion Bulletproof - UNLEASH mode command
+
+STATE_DIR=".claude/state"
+
+# Remove any existing mode files
+rm -f "$STATE_DIR"/DISCOVER "$STATE_DIR"/OPTIMIZE "$STATE_DIR"/UNLEASHED
+
+# Create UNLEASHED mode file
+touch "$STATE_DIR/UNLEASHED"
+
+# Clear approved edits (not needed in UNLEASH)
+> "$STATE_DIR/.approved_edits"
+
+# Show confirmation
+echo "⚡ UNLEASH MODE ACTIVATED"
+echo ""
+echo "Full autonomy mode enabled."
+echo "• Unrestricted file operations"
+echo "• Maximum development velocity"
+echo "• Continue to iterate and analyze as needed towards the approved plan"
+echo "• Please ask for help from your user if stuck, blocked, or confused"
+echo "Apply All Canon Principles:"
+echo "• Always-Works: Test everything, verify before claiming success"
+echo "• Reality-Check: When expected ≠ actual, stop and investigate"
+echo "• Close-the-Loop: Major changes need ripple effect analysis"
+echo ""
